@@ -72,7 +72,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	public void prepare()
 	{
 		// Exclamation mark icon
-		collisionicon = new JLabel(m.createImageIcon("modi/hashmap/collision.gif"));
+		collisionicon = new JLabel(Main.createImageIcon("modi/hashmap/collision.gif"));
 		collisionicon.setBounds(0,0,card_width,card_height);
 		
 		// Fill icons with blank labels
@@ -86,7 +86,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		
 		// Set up the screen
 		arrangeCards();
-		JLabel numbers = new JLabel(m.createImageIcon("modi/hashmap/numbers.png"));
+		JLabel numbers = new JLabel(Main.createImageIcon("modi/hashmap/numbers.png"));
 		numbers.setBounds((m.getScreenSize().width-466)/2,m.getDockIconYPosition()-8,453,6);
 		foreground.add(numbers);
 		foreground.repaint();
@@ -229,13 +229,13 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		window.setLayout(null);
 		window.setBounds(200,-124,255,410);
 		window.setAlwaysOnTop(true);
-		m.setTransparent(window);
+		Main.setTransparent(window);
 		
 		box = new JLayeredPane();
 		box.setLayout(null);
 		box.setBounds(0,0,239,124);
 		
-		JLabel background = new JLabel(m.createImageIcon("modi/hashmap/selectionwindow.png"));
+		JLabel background = new JLabel(Main.createImageIcon("modi/hashmap/selectionwindow.png"));
 		background.setBounds(0,0,239,124);
 		box.setLayer(background, 0);
 		box.add(background);
@@ -275,7 +275,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		box.setLayer(answerline, 1);
 		box.add(answerline);
 		
-		JLabel animation = new JLabel(m.createImageIcon("modi/hashmap/animation.gif"));
+		JLabel animation = new JLabel(Main.createImageIcon("modi/hashmap/animation.gif"));
 		animation.setBounds(0,0,239,124);
 		box.setLayer(animation, 2);
 		box.add(animation);

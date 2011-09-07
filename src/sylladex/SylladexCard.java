@@ -51,11 +51,11 @@ public class SylladexCard implements MouseInputListener
 		panel.setOpaque(false);
 		pane = new JLayeredPane();
 		pane.setLayout(null);
-		ImageIcon cardbgimage = deck.createImageIcon(deck.getModus().getCardBgUrl());
+		ImageIcon cardbgimage = Main.createImageIcon(deck.getModus().getCardBgUrl());
 		JLabel cardbg = new JLabel(cardbgimage);
 		cardbg.setBounds(0,0,getWidth(),getHeight());
 		
-		inaccessible = new JLabel(deck.createImageIcon("modi/global/inaccessible.png"));
+		inaccessible = new JLabel(Main.createImageIcon("modi/global/inaccessible.png"));
 		inaccessible.setBounds(0,0,getWidth(),getHeight());
 		
 		foreground = new JPanel();
@@ -169,7 +169,7 @@ public class SylladexCard implements MouseInputListener
 			image = null;
 			widget = null;
 			
-			Icon icon = deck.getIconFromFile(file);
+			Icon icon = Main.getIconFromFile(file);
 			String filename = file.getName();
 			cardicon = new JLabel(filename);
 			cardicon.setBounds(15*getWidth()/148,35*getHeight()/94,24*getWidth()/37,25*getHeight()/94);
@@ -207,7 +207,7 @@ public class SylladexCard implements MouseInputListener
 			
 			cardicon = new JLabel();
 			cardicon.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
-			Icon icon = deck.getSizedIcon(image, cardicon.getWidth(), cardicon.getHeight());
+			Icon icon = Main.getSizedIcon(image, cardicon.getWidth(), cardicon.getHeight());
 			cardicon.setIcon(icon);
 			cardicon.setHorizontalAlignment(JLabel.CENTER);
 			cardicon.setVerticalAlignment(JLabel.CENTER);

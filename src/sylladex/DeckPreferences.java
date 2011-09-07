@@ -579,8 +579,8 @@ public class DeckPreferences implements ActionListener, WindowListener
 		public ModusThumbnail(FetchModus mod)
 		{
 			mymodus = mod;
-			largeimage = m.createImageIcon(mymodus.info_image);
-			smallimage = m.getSizedIcon(largeimage.getImage(), 100, 127);
+			largeimage = Main.createImageIcon(mymodus.info_image);
+			smallimage = Main.getSizedIcon(largeimage.getImage(), 100, 127);
 			label = new JLabel(smallimage);
 			label.setHorizontalAlignment(JLabel.LEFT);
 			label.addMouseListener(this);

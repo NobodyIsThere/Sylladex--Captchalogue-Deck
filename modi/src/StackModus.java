@@ -107,7 +107,7 @@ public class StackModus extends FetchModus implements ActionListener
 			JLabel icon = new JLabel(bottomcard.getIcon().getIcon());
 
 			int xpos = m.getScreenSize().width/2 + (25*m.getCards().size());
-			arrow = new JLabel(m.createImageIcon("modi/stack/arrow.gif"));
+			arrow = new JLabel(Main.createImageIcon("modi/stack/arrow.gif"));
 			arrow.setBounds(xpos,m.getDockIconYPosition(),43,60);
 			icon.setBounds(xpos+50,m.getDockIconYPosition(),43,60);
 			

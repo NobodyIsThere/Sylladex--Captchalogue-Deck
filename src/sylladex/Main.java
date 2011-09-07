@@ -638,7 +638,7 @@ public class Main implements ActionListener, WindowListener
         if(prefs.top()==true) { return 10; } return 35;
     }
 
-    public ImageIcon createImageIcon(String path)
+    public static ImageIcon createImageIcon(String path)
     {
         java.net.URL url = null;
         ImageIcon icon = null;
@@ -676,7 +676,7 @@ public class Main implements ActionListener, WindowListener
         return null;
     }
 
-    public Icon getIconFromFile(File file)
+    public static Icon getIconFromFile(File file)
     {
         ShellFolder shellFolder;
         try
@@ -698,12 +698,12 @@ public class Main implements ActionListener, WindowListener
         return icon;
     }
 
-    public Icon getDockIcon(Image image)
+    public static Icon getDockIcon(Image image)
     {
         return new ImageIcon(image.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
     }
 
-    public Icon getSizedIcon(Image image, int width, int height)
+    public static Icon getSizedIcon(Image image, int width, int height)
     {
         ImageIcon icon = new ImageIcon(image);
         if(icon.getIconWidth()>icon.getIconHeight())
@@ -743,7 +743,7 @@ public class Main implements ActionListener, WindowListener
     }
 
     // Transparency
-    public void setTransparent(JWindow window)
+    public static void setTransparent(JWindow window)
     {
         if (com.sun.awt.AWTUtilities.isTranslucencySupported(com.sun.awt.AWTUtilities.Translucency.PERPIXEL_TRANSLUCENT)
                 && isTransparencySupported())
@@ -759,7 +759,7 @@ public class Main implements ActionListener, WindowListener
         }
     }
 
-    public boolean isTransparencySupported()
+    public static boolean isTransparencySupported()
     {
         GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice[] devices = env.getScreenDevices();
@@ -780,19 +780,19 @@ public class Main implements ActionListener, WindowListener
         return false;
     }
 
-    public boolean isWindows()
+    public static boolean isWindows()
     {
         String os = System.getProperty("os.name").toLowerCase();
         return os.indexOf("win") >= 0;
     }
 
-    public boolean isMac()
+    public static boolean isMac()
     {
         String os = System.getProperty("os.name").toLowerCase();
         return os.indexOf("mac") >= 0;
     }
 
-    public boolean isLinux()
+    public static boolean isLinux()
     {
         String os = System.getProperty("os.name").toLowerCase();
         return (os.indexOf("nix") >= 0) || (os.indexOf("nux") >=0);
