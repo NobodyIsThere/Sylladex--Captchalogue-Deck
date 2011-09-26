@@ -5,4 +5,4 @@ usb_mode:false
 autohide_cards:false
 always_on_top_cards:true
 copy:false
-fetchmodus:HashMapModus
+fetchmodus:StackModus

@@ -13,6 +13,7 @@ public abstract class Widget
 	public abstract void load(String string);
 	public abstract void open();
 	public abstract String getSaveString();
+	public abstract String getString();
 	
 	public void setCard(SylladexCard newcard)
 	{

@@ -17,7 +17,7 @@ public class Animation implements ActionListener
 	private String command = new String();
 	private Timer timer = new Timer(50, this);
 	
-	public enum AnimationType { MOVE, BOUNCE, BOUNCE_SPOT }
+	public enum AnimationType { MOVE, BOUNCE, BOUNCE_SPOT, WAIT }
 	
 	public Animation(JComponent comp, Point finalposition, AnimationType type, ActionListener listener, String command)
 	{
@@ -39,6 +39,16 @@ public class Animation implements ActionListener
 		this.listener = listener;
 		
 		this.command = command;
+	}
+	
+	//Only for WAIT
+	public Animation(AnimationType type, int duration, ActionListener listener, String command)
+	{
+		this.type = AnimationType.WAIT;
+		this.listener = listener;
+		this.command = command;
+		
+		timer.setInitialDelay(duration);
 	}
 	
 	public JComponent getComponent()
@@ -119,6 +129,10 @@ public class Animation implements ActionListener
 						timer.stop();
 						fireEvent();
 					}
+				}
+				case WAIT:
+				{
+					fireEvent();
 				}
 			}
 		}

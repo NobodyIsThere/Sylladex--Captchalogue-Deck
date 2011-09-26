@@ -440,9 +440,21 @@ public class DeckPreferences implements ActionListener, WindowListener
 	{
 		String string =
 			"<html>" +
-			"<b>Sylladex Architect:</b> gumptiousCreator<br/>" +
+			"<b>Sylladex Architect:</b><br/>" +
+			"gumptiousCreator<br/>" +
 			"-----<br/>" +
-			"<b>Pixel Filchers:</b> The Cool, ZDG";
+			"<b>Additional Codesmiths:</b><br/>" +
+			"evacipatedBox<br/>" +
+			"solenoidSynthesizer<br/>" +
+			"The Cool<br/>" +
+			"-----<br/>" +
+			"<b>Additional Appearance Sculptors:</b><br/>" +
+			"aquaMarinist<br/>" +
+			"-----<br/>" +
+			"<b>Pixel Filchers:</b><br/>" +
+			"aquaMarinist<br/>" +
+			"The Cool<br/>" +
+			"ZDG";
 		about_panel.setLayout(new BoxLayout(about_panel, BoxLayout.PAGE_AXIS));
 		about_panel.add(new JLabel(string));
 	}
