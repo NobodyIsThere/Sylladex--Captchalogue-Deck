@@ -49,6 +49,7 @@ public class Animation implements ActionListener
 		this.command = command;
 		
 		timer.setInitialDelay(duration);
+		timer.setDelay(duration);
 	}
 	
 	public JComponent getComponent()
@@ -73,6 +74,24 @@ public class Animation implements ActionListener
 		if(listener!=null)
 			listener.actionPerformed(f);
 	}
+	
+	public void setListener(ActionListener listener)
+	{this.listener = listener;}
+	
+	public void setActionCommand(String command)
+	{this.command = command;}
+	
+	public void setStartPosition(Point startposition)
+	{this.startposition = startposition;}
+	
+	public Point getStartPosition()
+	{return startposition;}
+	
+	public void setFinalPosition(Point finalposition)
+	{this.finalposition = finalposition;}
+	
+	public Point getFinalPosition()
+	{return finalposition;}
 
 	@Override
 	public void actionPerformed(ActionEvent e)
@@ -132,6 +151,7 @@ public class Animation implements ActionListener
 				}
 				case WAIT:
 				{
+					timer.stop();
 					fireEvent();
 				}
 			}

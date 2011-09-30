@@ -11,6 +11,8 @@ public class TreeModus extends FetchModus
 {
 	private ArrayList<SylladexCard> cards = new ArrayList<SylladexCard>();
 	private Tree tree;
+	private Tree.Node last;
+	
 	public TreeModus(Main m)
 	{
 		this.m = m;
@@ -39,6 +41,16 @@ public class TreeModus extends FetchModus
 		card_height = 119;
 		
 		icons = new ArrayList<JLabel>();
+	}
+	
+	enum PrefLabels
+	{
+		ROOT_ACCESS (0),
+		AUTO_BALANCE (1);
+		
+		public int index;
+		PrefLabels(int i)
+		{ index = i; }
 	}
 	
 	private class Tree
@@ -84,7 +96,6 @@ public class TreeModus extends FetchModus
 					}
 				}
 			}
-			node.balance();
 		}
 		
 		public void remove(SylladexCard card)
@@ -110,12 +121,21 @@ public class TreeModus extends FetchModus
 			return treeroot.getNodeWithCard(card);
 		}
 		
+		public ArrayList<Animation> buildAnimation(SylladexCard c)
+		{
+			ArrayList<Animation> anims = new ArrayList<Animation>();
+			c.setPosition(new Point(treeroot.x,treeroot.y));
+			return treeroot.buildAnimation(anims, c);
+		}
+		
 		public class Node
 		{
 			private SylladexCard card;
 			private Node left = null;
 			private Node right = null;
 			private Node parent = null;
+			public int x;
+			public int y;
 			
 			public Node(SylladexCard card)
 			{
@@ -249,18 +269,16 @@ public class TreeModus extends FetchModus
 			
 			public int leftWidth()
 			{
-				return offset();
-				//if(left!=null)
-				//	return card_width/2 + 1 + left.leftWidth();
-				//return card_width/2 + 1;
+				if(left!=null)
+					return card_width/2 + 1 + left.leftWidth();
+				return card_width/2 + 1;
 			}
 			
 			public int rightWidth()
 			{
-				return offset();
-				//if(right!=null)
-				//	return card_width/2 + 1 + right.rightWidth();
-				//return card_width/2 + 1;
+				if(right!=null)
+					return card_width/2 + 1 + right.rightWidth();
+				return card_width/2 + 1;
 			}
 			
 			public int getX()
@@ -275,10 +293,14 @@ public class TreeModus extends FetchModus
 				{
 					if(this == parent.left)
 					{
+						if(parent.getX()-rightWidth()<parent.getX()-card_width+10)
+						{ return parent.getX()-card_width+10; }
 						return parent.getX() - rightWidth();
 					}
 					else
 					{
+						if(parent.getX()+leftWidth()>parent.getX()+card_width-10)
+						{ return parent.getX()+card_width-10; }
 						return parent.getX() + leftWidth();
 					}
 				}
@@ -318,6 +340,56 @@ public class TreeModus extends FetchModus
 				}
 				return null;
 			}
+			
+			public ArrayList<Animation> buildAnimation(ArrayList<Animation> anims, SylladexCard c)
+			{
+				//Don't animate the root
+				if(c.getItemString().equals(card.getItemString()))
+				{
+					Animation a = new Animation(AnimationType.WAIT,100,null,"run");
+					if(anims.size()>0)
+					{
+						anims.get(anims.size()-1).setListener(a);
+					}
+					anims.add(a);
+					return anims;
+				}
+				
+				Point p = null;
+				boolean addleft = false;
+				if(c.getItemString().compareToIgnoreCase(card.getItemString())<0)
+				{
+					//Left
+					p = new Point(x-20,y+20);
+					addleft = true;
+				}
+				else
+				{
+					//Right
+					p = new Point(x+20,y+20);
+				}
+				
+				Animation b = new Animation(AnimationType.WAIT, 500, null, "run");
+				Animation a = new Animation(c, p, AnimationType.BOUNCE, b, "run");
+				b.setFinalPosition(p);
+				if(anims.size()>0)
+				{
+					anims.get(anims.size()-1).setListener(a);
+					a.setStartPosition(anims.get(anims.size()-1).getFinalPosition());
+				}
+				anims.add(a);
+				anims.add(b);
+				
+				if(addleft && !isLeaf())
+				{
+					return left.buildAnimation(anims, c);
+				}
+				if(!addleft && !isLeaf())
+				{
+					return right.buildAnimation(anims, c);
+				}
+				return anims;
+			}
 		}
 	}
 	
@@ -331,6 +403,8 @@ public class TreeModus extends FetchModus
 	@Override
 	public void addGenericItem(Object o)
 	{
+		ArrayList<Animation> anims;
+		
 		if(m.getNextEmptyCard()==null)
 			return;
 		SylladexCard card = m.getNextEmptyCard();
@@ -344,7 +418,9 @@ public class TreeModus extends FetchModus
 			card.setItem(o);
 			tree.add(card);
 		}
-		card.setAccessible(true);
+		
+		last = tree.getNodeWithCard(card);
+		
 		JLabel icon = m.getIconLabelFromObject(o);
 		icons.add(icon);
 		card.setIcon(icon);
@@ -352,7 +428,11 @@ public class TreeModus extends FetchModus
 		m.setIcons(icons);
 		
 		//TODO
-		arrangeCards();
+		
+		anims = tree.buildAnimation(card);
+		anims.get(anims.size()-1).setListener(this);
+		anims.get(anims.size()-1).setActionCommand("end animation");
+		anims.get(0).run();
 	}
 	
 	private void arrangeCards()
@@ -361,13 +441,17 @@ public class TreeModus extends FetchModus
 		{
 			Tree.Node node = tree.getNodeWithCard(card);
 			card.setPosition(new Point(node.getX(),node.getY()));
+			node.x = node.getX();
+			node.y = node.getY();
 			if(node.isLeaf())
 			{ card.setAccessible(true); }
 			else
 			{ card.setAccessible(false); }
+			//TODO: Check preferences
+			card.setLayer(node.getY()+node.getX());
 		}
 		if(tree!=null)
-		{ m.setCardHolderSize(500,500); }
+		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + card_width*2,500); }
 		m.refreshCardHolder();
 	}
 	
@@ -402,6 +486,13 @@ public class TreeModus extends FetchModus
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e){}
+	public void actionPerformed(ActionEvent e)
+	{
+		if(e.getActionCommand().equals("end animation"))
+		{
+			last.balance();
+			arrangeCards();
+		}
+	}
 	
 }
