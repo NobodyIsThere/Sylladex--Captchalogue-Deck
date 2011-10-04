@@ -688,7 +688,7 @@ public class Main implements ActionListener, WindowListener
             e.printStackTrace();
             shellFolder = null;
         }
-        if(shellFolder!=null && !isLinux())
+        if(shellFolder!=null && isWindows())
         {
             Icon icon = new ImageIcon(shellFolder.getIcon(true));
             return icon;
