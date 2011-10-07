@@ -86,6 +86,19 @@ public class Main implements ActionListener, WindowListener
         createDock();
         refreshDock();
         modus.prepare();
+        
+        //Make sure contents are saved on Mac Cmd+Q
+        if(isMac())
+        {
+        	Runnable exithook = new Runnable()
+        	{
+        		public void run()
+        		{
+        			prefs.cleanUp();
+        		}
+        	};
+        	Runtime.getRuntime().addShutdownHook(new Thread(exithook,"Contents save hook (OSX)"));
+        }
     }
 
     protected void changeModus(FetchModus m)
@@ -234,9 +247,9 @@ public class Main implements ActionListener, WindowListener
         deckwidth = screensize.width;
         dock.setSize(new Dimension(deckwidth,100));
         if(prefs.top()==true)
-        { dock.setLocation(new Point(0,0)); }
+        { dock.setLocation(new Point(0,prefs.offset())); }
         else
-        { dock.setLocation(new Point(0,screensize.height-100)); }
+        { dock.setLocation(new Point(0,screensize.height-100-prefs.offset())); }
 
         pane.removeAll();
         addComponentsToDock();
@@ -393,11 +406,11 @@ public class Main implements ActionListener, WindowListener
     {
         if(prefs.top())
         {
-            dock.setLocation(0,0);
+            dock.setLocation(0,prefs.offset());
         }
         else
         {
-            dock.setLocation(0,screensize.height-100);
+            dock.setLocation(0,screensize.height-100-prefs.offset());
         }
         d_hidden = false;
     }
@@ -405,9 +418,9 @@ public class Main implements ActionListener, WindowListener
     public void hideDock()
     {
         if(prefs.top())
-            dock.setLocation(0,-99);
+            dock.setLocation(0,-99+prefs.offset());
         else
-            dock.setLocation(0,screensize.height-1);
+            dock.setLocation(0,screensize.height-1-prefs.offset());
         d_hidden = true;
     }
 

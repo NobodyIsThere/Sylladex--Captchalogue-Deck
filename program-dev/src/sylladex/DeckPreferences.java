@@ -27,6 +27,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 				private boolean autohide_dock; private JCheckBox ahdock;
 				private boolean always_on_top_dock; private JCheckBox aotdock;
 				private boolean usb_mode; private JCheckBox usbmode;
+				private int offset; private JTextField dock_offset;
 			//Cards
 				private boolean autohide_cards; private JCheckBox ahcards;
 				private boolean always_on_top_cards; private JCheckBox aotcards;
@@ -164,6 +165,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		autohide_dock = Boolean.parseBoolean(preferences.get("autohide_dock"));
 		always_on_top_dock = Boolean.parseBoolean(preferences.get("always_on_top_dock"));
 		usb_mode = Boolean.parseBoolean(preferences.get("usb_mode"));
+		offset = Integer.parseInt(preferences.get("offset"));
 		
 		autohide_cards = Boolean.parseBoolean(preferences.get("autohide_cards"));
 		always_on_top_cards = Boolean.parseBoolean(preferences.get("always_on_top_cards"));
@@ -178,6 +180,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		String autohide_docks = new Boolean(autohide_dock).toString();
 		String always_on_top_docks = new Boolean(always_on_top_dock).toString();
 		String usb_modes = new Boolean(usb_mode).toString();
+		String offsets = new Integer(offset).toString();
 		String autohide_cardss = new Boolean(autohide_cards).toString();
 		String always_on_top_cardss = new Boolean(always_on_top_cards).toString();
 		String copys = new Boolean(copy).toString();
@@ -187,6 +190,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		core_preferences.put("autohide_dock", autohide_docks);
 		core_preferences.put("always_on_top_dock", always_on_top_docks);
 		core_preferences.put("usb_mode", usb_modes);
+		core_preferences.put("offset", offsets);
 		core_preferences.put("autohide_cards", autohide_cardss);
 		core_preferences.put("always_on_top_cards", always_on_top_cardss);
 		core_preferences.put("copy", copys);
@@ -204,6 +208,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 			bwriter.write("autohide_dock:" + core_preferences.get("autohide_dock")); bwriter.newLine();
 			bwriter.write("always_on_top_dock:" + core_preferences.get("always_on_top_dock")); bwriter.newLine();
 			bwriter.write("usb_mode:" + core_preferences.get("usb_mode")); bwriter.newLine();
+			bwriter.write("offset:" + core_preferences.get("offset")); bwriter.newLine();
 			bwriter.write("autohide_cards:" + core_preferences.get("autohide_cards")); bwriter.newLine();
 			bwriter.write("always_on_top_cards:" + core_preferences.get("always_on_top_cards")); bwriter.newLine();
 			bwriter.write("copy:" + core_preferences.get("copy")); bwriter.newLine();
@@ -300,6 +305,11 @@ public class DeckPreferences implements ActionListener, WindowListener
 		return usb_mode;
 	}
 	
+	public int offset()
+	{
+		return offset;
+	}
+	
 	public boolean autohide_cards()
 	{
 		return autohide_cards;
@@ -368,6 +378,9 @@ public class DeckPreferences implements ActionListener, WindowListener
 			if(top){ topbox.setSelectedIndex(1); } else { topbox.setSelectedIndex(0); }
 			topbox.addActionListener(this);
 		
+		dock_offset = new JTextField(new Integer(offset).toString());
+			dock_offset.addActionListener(this);
+		
 		ahdock = new JCheckBox("Auto-hide");
 			ahdock.setSelected(autohide_dock);
 			ahdock.addActionListener(this);
@@ -416,6 +429,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		buttonpanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		
 		dockpanel.add(topbox);
+		dockpanel.add(dock_offset);
 		dockpanel.add(ahdock);
 		dockpanel.add(aotdock);
 		
@@ -439,10 +453,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 	private void populateAboutPanel()
 	{
 		String string =
-			"<html>" +
-			"<b>Sylladex Architect:</b> gumptiousCreator<br/>" +
-			"-----<br/>" +
-			"<b>Pixel Filchers:</b> The Cool, ZDG";
+			"use the credits in the Tree branch";
 		about_panel.setLayout(new BoxLayout(about_panel, BoxLayout.PAGE_AXIS));
 		about_panel.add(new JLabel(string));
 	}
@@ -531,6 +542,13 @@ public class DeckPreferences implements ActionListener, WindowListener
 		if(source == topbox)
 		{
 			if(topbox.getSelectedIndex()==1){ top=true; } else { top=false; }
+		}
+		else if(source == dock_offset)
+		{
+			if(dock_offset.getText().matches("[0-9]+"))
+			{
+				offset = Integer.parseInt(dock_offset.getText());
+			}
 		}
 		else if(source == modusbutton)
 		{
