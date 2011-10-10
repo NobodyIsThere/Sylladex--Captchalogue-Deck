@@ -382,7 +382,7 @@ public class SylladexCard implements MouseInputListener
 			if(accessible)
 			{
 				if(e.getButton()==MouseEvent.BUTTON1)
-					deck.getModus().open(id);
+					deck.getModus().open(this);
 				else
 					deck.openWithoutRemoval(this);
 			}

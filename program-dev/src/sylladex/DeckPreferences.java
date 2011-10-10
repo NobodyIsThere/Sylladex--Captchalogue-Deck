@@ -7,8 +7,10 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class DeckPreferences implements ActionListener, WindowListener
+public class DeckPreferences implements ActionListener, WindowListener, ChangeListener
 {
 	private JFrame preferences_frame;
 	private JLabel preview;
@@ -27,7 +29,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 				private boolean autohide_dock; private JCheckBox ahdock;
 				private boolean always_on_top_dock; private JCheckBox aotdock;
 				private boolean usb_mode; private JCheckBox usbmode;
-				private int offset; private JTextField dock_offset;
+				private int offset; private JSlider dock_offset;
 			//Cards
 				private boolean autohide_cards; private JCheckBox ahcards;
 				private boolean always_on_top_cards; private JCheckBox aotcards;
@@ -378,8 +380,8 @@ public class DeckPreferences implements ActionListener, WindowListener
 			if(top){ topbox.setSelectedIndex(1); } else { topbox.setSelectedIndex(0); }
 			topbox.addActionListener(this);
 		
-		dock_offset = new JTextField(new Integer(offset).toString());
-			dock_offset.addActionListener(this);
+		dock_offset = new JSlider(JSlider.HORIZONTAL, 0, 200, offset);
+			dock_offset.addChangeListener(this);
 		
 		ahdock = new JCheckBox("Auto-hide");
 			ahdock.setSelected(autohide_dock);
@@ -543,13 +545,6 @@ public class DeckPreferences implements ActionListener, WindowListener
 		{
 			if(topbox.getSelectedIndex()==1){ top=true; } else { top=false; }
 		}
-		else if(source == dock_offset)
-		{
-			if(dock_offset.getText().matches("[0-9]+"))
-			{
-				offset = Integer.parseInt(dock_offset.getText());
-			}
-		}
 		else if(source == modusbutton)
 		{
 			createAndShowModusBrowser();
@@ -587,7 +582,16 @@ public class DeckPreferences implements ActionListener, WindowListener
 		if(autohide_dock){ m.hideDock(); }
 		if(autohide_cards) { m.getCardHolder().setVisible(false); }
 	}
-
+	
+	@Override
+	public void stateChanged(ChangeEvent e)
+	{
+		if (e.getSource() == dock_offset)
+		{
+			offset = dock_offset.getValue();
+		}
+		m.showDock();
+	}
 	private class ModusThumbnail implements MouseListener
 	{
 		JLabel label;
@@ -666,4 +670,5 @@ public class DeckPreferences implements ActionListener, WindowListener
 	public void windowIconified(WindowEvent arg0){}
 	@Override
 	public void windowOpened(WindowEvent arg0){}
+
 }

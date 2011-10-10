@@ -598,6 +598,7 @@ public class Main implements ActionListener, WindowListener
         return sylladexcards.get(index);
     }
 
+    @Deprecated
     protected SylladexCard getCardWithId(int id)
     {
         int i = 0;
