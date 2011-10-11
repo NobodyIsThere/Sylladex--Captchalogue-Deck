@@ -1,6 +1,5 @@
-//import javax.swing.JLabel;
-
 import sylladex.*;
+import javax.swing.*;
 
 public class RPObject extends Widget
 {
@@ -14,14 +13,14 @@ public class RPObject extends Widget
 	@Override
 	public void prepare()
 	{
-		//dock_icon = new JLabel(Main.createImageIcon("modi/hashmap/collision.gif"));
+		string = JOptionPane.showInputDialog("Enter a name for the item.");
+		//Accept an image
 	}
 
 	@Override
 	public void load(String string)
 	{
-		// TODO Auto-generated method stub
-		
+		this.string = string;
 	}
 	
 	@Override
@@ -33,6 +32,6 @@ public class RPObject extends Widget
 	@Override
 	public String getSaveString()
 	{
-		return "Temporary save string for RP widget";
+		return string;
 	}
 }

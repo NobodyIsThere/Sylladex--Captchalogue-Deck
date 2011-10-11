@@ -222,7 +222,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		}
 		else if(o instanceof Widget)
 		{
-			return ((Widget)o).getString();
+			return ((Widget)o).getString().toUpperCase();
 		}
 		else return ((String)o).toUpperCase();
 	}
