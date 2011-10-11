@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -170,7 +172,15 @@ public class Main implements ActionListener, WindowListener
                     java.util.List<File> fileList = (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : fileList)
                     {
-                        addItem(file);
+                    	if(file.getName().endsWith(".class"))
+                    	{
+                    		Widget widget = loadWidget(file);
+                    		addItem(widget);
+                    	}
+                    	else
+                        {
+                    		addItem(file);
+                        }
                     }
                 }
             }
@@ -478,6 +488,21 @@ public class Main implements ActionListener, WindowListener
         id++;
     }
 
+    private Widget loadWidget(File file)
+    {
+    	try
+    	{
+    		URL[] url = { new File("widgets/").toURI().toURL() };
+    		ClassLoader cl = new URLClassLoader(url);
+    		Class<?> wclass = cl.loadClass(file.getName().replaceAll("\\.class?", ""));
+    		Widget widget = (Widget) wclass.newInstance();
+    		widget.setMain(this);
+    		return widget;
+    	}
+    	catch (Exception e) {e.printStackTrace();}
+    	return null;
+    }
+    
     public void addItem(String string)
     {
         string = string.replaceAll("http://", "");
@@ -522,6 +547,7 @@ public class Main implements ActionListener, WindowListener
 
     public void addItem(Widget widget)
     {
+    	widget.prepare();
         modus.addItem(widget);
     }
 
@@ -752,6 +778,14 @@ public class Main implements ActionListener, WindowListener
                 catch (IOException e){ return file.getPath(); }
             }
             return file;
+        }
+        else if(string.startsWith("[WIDGET]"))
+        {
+        	String cut = string.replaceAll("\\[WIDGET\\]", "");
+        	String path = cut.substring(0, cut.indexOf("[")-1);
+        	Widget widget = loadWidget(new File(path));
+        	widget.load(cut.substring(cut.indexOf("]")+1));
+        	return widget;
         }
         return string.replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
     }

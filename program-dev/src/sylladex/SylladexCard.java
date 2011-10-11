@@ -135,7 +135,7 @@ public class SylladexCard implements MouseInputListener
 		}
 		else if(widget!=null)
 		{
-			return widget.getSaveString();
+			return "[WIDGET]widgets/" + widget.getClass().getName() + ".class[/WIDGET]" + widget.getSaveString();
 		}
 		return null;
 	}
