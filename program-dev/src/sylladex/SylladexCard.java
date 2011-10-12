@@ -273,6 +273,7 @@ public class SylladexCard implements MouseInputListener
 			string = null;
 			
 			widgetpanel = widget.getPanel();
+			widgetpanel.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
 			pane.setLayer(widgetpanel, 1);
 			pane.add(widgetpanel);
 			

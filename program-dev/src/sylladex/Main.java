@@ -658,7 +658,7 @@ public class Main implements ActionListener, WindowListener
         return sylladexcards;
     }
 
-    protected FetchModus getModus()
+    public FetchModus getModus()
     {
         return modus;
     }
