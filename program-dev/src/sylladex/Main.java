@@ -74,8 +74,7 @@ public class Main implements ActionListener, WindowListener
             e.printStackTrace();
             //TODO: We can't continue without preferences.
         }
-        //modus = prefs.getModus();
-        modus = new TreeModus(this);
+        modus = prefs.getModus();
         modus.setPreferences(prefs.getModusPreferences());
         modus.setItems(prefs.getModusItems());
         id = 0;
@@ -213,7 +212,6 @@ public class Main implements ActionListener, WindowListener
         dock.setUndecorated(true);
         dock.setResizable(false);
         dock.setTitle("Sylladex::Captchalogue Deck");
-        dock.setIconImage(createImageIcon(modus.image_card).getImage());
         dock.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         dock.addWindowListener(this);
         //Components
@@ -233,6 +231,7 @@ public class Main implements ActionListener, WindowListener
         else
             dock.setAlwaysOnTop(false);
 
+        dock.setIconImage(createImageIcon(modus.image_card).getImage());
         deckwidth = screensize.width;
         dock.setSize(new Dimension(deckwidth,100));
         if(prefs.top()==true)

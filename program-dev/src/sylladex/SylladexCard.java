@@ -182,7 +182,7 @@ public class SylladexCard implements MouseInputListener
 			Icon icon = Main.getIconFromFile(file);
 			String filename = file.getName();
 			cardicon = new JLabel(filename);
-			cardicon.setBounds(15*getWidth()/148,35*getHeight()/94,24*getWidth()/37,80*getHeight()/188);
+			cardicon.setBounds(15*getWidth()/148,35*getHeight()/94,24*getWidth()/37,82*getHeight()/188);
 			cardicon.setIcon(icon);
 			cardicon.setHorizontalAlignment(JLabel.CENTER);
 			cardicon.setVerticalAlignment(JLabel.TOP);

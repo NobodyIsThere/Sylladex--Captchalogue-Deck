@@ -8,6 +8,7 @@ import javax.swing.*;
 public class Animation implements ActionListener
 {
 	private JComponent comp;
+	private SylladexCard card;
 	
 	private Point startposition;
 	private Point finalposition;
@@ -32,6 +33,7 @@ public class Animation implements ActionListener
 	
 	public Animation(SylladexCard card, Point finalposition, AnimationType type, ActionListener listener, String command)
 	{
+		this.card = card;
 		this.comp = card.getPanel();
 		this.startposition = card.getPosition();
 		this.finalposition = finalposition;
@@ -57,6 +59,11 @@ public class Animation implements ActionListener
 		return comp;
 	}
 	
+	public SylladexCard getCard()
+	{
+		return card;
+	}
+	
 	public void run()
 	{
 		timer.restart();
@@ -70,6 +77,8 @@ public class Animation implements ActionListener
 	
 	private void fireEvent()
 	{
+		if(card!=null)
+			card.setPosition(finalposition);
 		ActionEvent f = new ActionEvent(this, 413, command);
 		if(listener!=null)
 			listener.actionPerformed(f);

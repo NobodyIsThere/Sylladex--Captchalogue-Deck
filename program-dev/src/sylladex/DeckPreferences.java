@@ -445,8 +445,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 			"-----<br/>" +
 			"<b>Additional Codesmiths:</b><br/>" +
 			"evacipatedBox<br/>" +
-			"solenoidSynthesizer<br/>" +
-			"The Cool<br/>" +
+			"Nokob<br/>" +
 			"-----<br/>" +
 			"<b>Additional Appearance Sculptors:</b><br/>" +
 			"aquaMarinist<br/>" +
