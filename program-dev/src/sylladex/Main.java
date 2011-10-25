@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -86,6 +88,19 @@ public class Main implements ActionListener, WindowListener
         createDock();
         refreshDock();
         modus.prepare();
+        
+        //Make sure contents are saved on Mac Cmd+Q
+        if(isMac())
+        {
+        	Runnable exithook = new Runnable()
+        	{
+        		public void run()
+        		{
+        			prefs.cleanUp();
+        		}
+        	};
+        	Runtime.getRuntime().addShutdownHook(new Thread(exithook,"Contents save hook (OSX)"));
+        }
     }
 
     protected void changeModus(FetchModus m)
@@ -157,7 +172,15 @@ public class Main implements ActionListener, WindowListener
                     java.util.List<File> fileList = (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : fileList)
                     {
-                        addItem(file);
+                    	if(file.getName().endsWith(".class"))
+                    	{
+                    		Widget widget = loadWidget(file);
+                    		addItem(widget);
+                    	}
+                    	else
+                        {
+                    		addItem(file);
+                        }
                     }
                 }
             }
@@ -235,9 +258,9 @@ public class Main implements ActionListener, WindowListener
         deckwidth = screensize.width;
         dock.setSize(new Dimension(deckwidth,100));
         if(prefs.top()==true)
-        { dock.setLocation(new Point(0,0)); }
+        { dock.setLocation(new Point(0,prefs.offset())); }
         else
-        { dock.setLocation(new Point(0,screensize.height-100)); }
+        { dock.setLocation(new Point(0,screensize.height-100-prefs.offset())); }
 
         pane.removeAll();
         addComponentsToDock();
@@ -394,11 +417,11 @@ public class Main implements ActionListener, WindowListener
     {
         if(prefs.top())
         {
-            dock.setLocation(0,0);
+            dock.setLocation(0,prefs.offset());
         }
         else
         {
-            dock.setLocation(0,screensize.height-100);
+            dock.setLocation(0,screensize.height-100-prefs.offset());
         }
         d_hidden = false;
     }
@@ -406,9 +429,9 @@ public class Main implements ActionListener, WindowListener
     public void hideDock()
     {
         if(prefs.top())
-            dock.setLocation(0,-99);
+            dock.setLocation(0,-99+prefs.offset());
         else
-            dock.setLocation(0,screensize.height-1);
+            dock.setLocation(0,screensize.height-1-prefs.offset());
         d_hidden = true;
     }
 
@@ -466,6 +489,21 @@ public class Main implements ActionListener, WindowListener
         id++;
     }
 
+    private Widget loadWidget(File file)
+    {
+    	try
+    	{
+    		URL[] url = { new File("widgets/").toURI().toURL() };
+    		ClassLoader cl = new URLClassLoader(url);
+    		Class<?> wclass = cl.loadClass(file.getName().replaceAll("\\.class?", ""));
+    		Widget widget = (Widget) wclass.newInstance();
+    		widget.setMain(this);
+    		return widget;
+    	}
+    	catch (Exception e) {e.printStackTrace();}
+    	return null;
+    }
+    
     public void addItem(String string)
     {
         string = string.replaceAll("http://", "");
@@ -510,6 +548,7 @@ public class Main implements ActionListener, WindowListener
 
     public void addItem(Widget widget)
     {
+    	widget.prepare();
         modus.addItem(widget);
     }
 
@@ -586,6 +625,7 @@ public class Main implements ActionListener, WindowListener
         return sylladexcards.get(index);
     }
 
+    @Deprecated
     protected SylladexCard getCardWithId(int id)
     {
         int i = 0;
@@ -619,7 +659,7 @@ public class Main implements ActionListener, WindowListener
         return sylladexcards;
     }
 
-    protected FetchModus getModus()
+    public FetchModus getModus()
     {
         return modus;
     }
@@ -689,7 +729,7 @@ public class Main implements ActionListener, WindowListener
             e.printStackTrace();
             shellFolder = null;
         }
-        if(shellFolder!=null && !isLinux())
+        if(shellFolder!=null && isWindows())
         {
             Icon icon = new ImageIcon(shellFolder.getIcon(true));
             return icon;
@@ -739,6 +779,14 @@ public class Main implements ActionListener, WindowListener
                 catch (IOException e){ return file.getPath(); }
             }
             return file;
+        }
+        else if(string.startsWith("[WIDGET]"))
+        {
+        	String cut = string.replaceAll("\\[WIDGET\\]", "");
+        	String path = cut.substring(0, cut.indexOf("[")-1);
+        	Widget widget = loadWidget(new File(path));
+        	widget.load(cut.substring(cut.indexOf("]")+1));
+        	return widget;
         }
         return string.replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
     }

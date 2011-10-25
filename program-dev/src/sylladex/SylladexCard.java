@@ -136,7 +136,7 @@ public class SylladexCard implements MouseInputListener
 		}
 		else if(widget!=null)
 		{
-			return widget.getSaveString();
+			return "[WIDGET]widgets/" + widget.getClass().getName() + ".class[/WIDGET]" + widget.getSaveString();
 		}
 		return null;
 	}
@@ -284,6 +284,7 @@ public class SylladexCard implements MouseInputListener
 			string = null;
 			
 			widgetpanel = widget.getPanel();
+			widgetpanel.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
 			pane.setLayer(widgetpanel, 1);
 			pane.add(widgetpanel);
 			
@@ -393,7 +394,7 @@ public class SylladexCard implements MouseInputListener
 			if(accessible)
 			{
 				if(e.getButton()==MouseEvent.BUTTON1)
-					deck.getModus().open(id);
+					deck.getModus().open(this);
 				else
 					deck.openWithoutRemoval(this);
 			}

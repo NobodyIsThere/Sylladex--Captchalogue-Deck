@@ -7,8 +7,10 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class DeckPreferences implements ActionListener, WindowListener
+public class DeckPreferences implements ActionListener, WindowListener, ChangeListener
 {
 	private JFrame preferences_frame;
 	private JLabel preview;
@@ -27,6 +29,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 				private boolean autohide_dock; private JCheckBox ahdock;
 				private boolean always_on_top_dock; private JCheckBox aotdock;
 				private boolean usb_mode; private JCheckBox usbmode;
+				private int offset; private JSlider dock_offset;
 			//Cards
 				private boolean autohide_cards; private JCheckBox ahcards;
 				private boolean always_on_top_cards; private JCheckBox aotcards;
@@ -164,6 +167,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		autohide_dock = Boolean.parseBoolean(preferences.get("autohide_dock"));
 		always_on_top_dock = Boolean.parseBoolean(preferences.get("always_on_top_dock"));
 		usb_mode = Boolean.parseBoolean(preferences.get("usb_mode"));
+		offset = Integer.parseInt(preferences.get("offset"));
 		
 		autohide_cards = Boolean.parseBoolean(preferences.get("autohide_cards"));
 		always_on_top_cards = Boolean.parseBoolean(preferences.get("always_on_top_cards"));
@@ -178,6 +182,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		String autohide_docks = new Boolean(autohide_dock).toString();
 		String always_on_top_docks = new Boolean(always_on_top_dock).toString();
 		String usb_modes = new Boolean(usb_mode).toString();
+		String offsets = new Integer(offset).toString();
 		String autohide_cardss = new Boolean(autohide_cards).toString();
 		String always_on_top_cardss = new Boolean(always_on_top_cards).toString();
 		String copys = new Boolean(copy).toString();
@@ -187,6 +192,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		core_preferences.put("autohide_dock", autohide_docks);
 		core_preferences.put("always_on_top_dock", always_on_top_docks);
 		core_preferences.put("usb_mode", usb_modes);
+		core_preferences.put("offset", offsets);
 		core_preferences.put("autohide_cards", autohide_cardss);
 		core_preferences.put("always_on_top_cards", always_on_top_cardss);
 		core_preferences.put("copy", copys);
@@ -204,6 +210,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 			bwriter.write("autohide_dock:" + core_preferences.get("autohide_dock")); bwriter.newLine();
 			bwriter.write("always_on_top_dock:" + core_preferences.get("always_on_top_dock")); bwriter.newLine();
 			bwriter.write("usb_mode:" + core_preferences.get("usb_mode")); bwriter.newLine();
+			bwriter.write("offset:" + core_preferences.get("offset")); bwriter.newLine();
 			bwriter.write("autohide_cards:" + core_preferences.get("autohide_cards")); bwriter.newLine();
 			bwriter.write("always_on_top_cards:" + core_preferences.get("always_on_top_cards")); bwriter.newLine();
 			bwriter.write("copy:" + core_preferences.get("copy")); bwriter.newLine();
@@ -300,6 +307,11 @@ public class DeckPreferences implements ActionListener, WindowListener
 		return usb_mode;
 	}
 	
+	public int offset()
+	{
+		return offset;
+	}
+	
 	public boolean autohide_cards()
 	{
 		return autohide_cards;
@@ -368,6 +380,9 @@ public class DeckPreferences implements ActionListener, WindowListener
 			if(top){ topbox.setSelectedIndex(1); } else { topbox.setSelectedIndex(0); }
 			topbox.addActionListener(this);
 		
+		dock_offset = new JSlider(JSlider.HORIZONTAL, 0, 200, offset);
+			dock_offset.addChangeListener(this);
+		
 		ahdock = new JCheckBox("Auto-hide");
 			ahdock.setSelected(autohide_dock);
 			ahdock.addActionListener(this);
@@ -416,6 +431,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 		buttonpanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		
 		dockpanel.add(topbox);
+		dockpanel.add(dock_offset);
 		dockpanel.add(ahdock);
 		dockpanel.add(aotdock);
 		
@@ -439,6 +455,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 	private void populateAboutPanel()
 	{
 		String string =
+<<<<<<< HEAD
 			"<html>" +
 			"<b>Sylladex Architect:</b><br/>" +
 			"gumptiousCreator<br/>" +
@@ -454,6 +471,7 @@ public class DeckPreferences implements ActionListener, WindowListener
 			"aquaMarinist<br/>" +
 			"The Cool<br/>" +
 			"ZDG";
+>>>>>>> c8b02f241af8f65329ffe148ee6c317283cb0c62
 		about_panel.setLayout(new BoxLayout(about_panel, BoxLayout.PAGE_AXIS));
 		about_panel.add(new JLabel(string));
 	}
@@ -580,7 +598,16 @@ public class DeckPreferences implements ActionListener, WindowListener
 		if(autohide_dock){ m.hideDock(); }
 		if(autohide_cards) { m.getCardHolder().setVisible(false); }
 	}
-
+	
+	@Override
+	public void stateChanged(ChangeEvent e)
+	{
+		if (e.getSource() == dock_offset)
+		{
+			offset = dock_offset.getValue();
+		}
+		m.showDock();
+	}
 	private class ModusThumbnail implements MouseListener
 	{
 		JLabel label;
@@ -659,4 +686,5 @@ public class DeckPreferences implements ActionListener, WindowListener
 	public void windowIconified(WindowEvent arg0){}
 	@Override
 	public void windowOpened(WindowEvent arg0){}
+
 }

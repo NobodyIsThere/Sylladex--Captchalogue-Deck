@@ -1,8 +1,9 @@
 top:true
-autohide_dock:true
-always_on_top_dock:true
+autohide_dock:false
+always_on_top_dock:false
 usb_mode:false
-autohide_cards:false
+offset:22
+autohide_cards:true
 always_on_top_cards:true
 copy:false
 fetchmodus:StackModus

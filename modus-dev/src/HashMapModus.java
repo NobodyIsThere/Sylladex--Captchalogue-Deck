@@ -220,6 +220,10 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		{
 			return "IMAGE";
 		}
+		else if(o instanceof Widget)
+		{
+			return ((Widget)o).getString().toUpperCase();
+		}
 		else return ((String)o).toUpperCase();
 	}
 

@@ -78,11 +78,6 @@ public abstract class FetchModus implements ActionListener
 	
 	public abstract ArrayList<String> getItems();
 	
-	public void open(int id)
-	{
-		open(m.getCardWithId(id));
-	}
-	
 	public ArrayList<JLabel> getDockIcons()
 	{
 		return icons;
