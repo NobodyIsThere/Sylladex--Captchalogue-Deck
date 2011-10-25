@@ -15,7 +15,6 @@ public abstract class Widget
 	public abstract void open();
 	public abstract String getString();
 	public abstract String getSaveString();
-	public abstract String getString();
 	
 	public void setCard(SylladexCard newcard)
 	{

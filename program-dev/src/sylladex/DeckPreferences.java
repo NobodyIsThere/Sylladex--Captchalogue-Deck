@@ -455,7 +455,6 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	private void populateAboutPanel()
 	{
 		String string =
-<<<<<<< HEAD
 			"<html>" +
 			"<b>Sylladex Architect:</b><br/>" +
 			"gumptiousCreator<br/>" +
@@ -471,7 +470,6 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			"aquaMarinist<br/>" +
 			"The Cool<br/>" +
 			"ZDG";
->>>>>>> c8b02f241af8f65329ffe148ee6c317283cb0c62
 		about_panel.setLayout(new BoxLayout(about_panel, BoxLayout.PAGE_AXIS));
 		about_panel.add(new JLabel(string));
 	}
