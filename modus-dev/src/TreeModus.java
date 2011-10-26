@@ -13,6 +13,9 @@ public class TreeModus extends FetchModus
 	private Tree tree;
 	private Tree.Node last;
 	
+	JToggleButton rootbutton;
+	JToggleButton leafbutton;
+	
 	public TreeModus(Main m)
 	{
 		this.m = m;
@@ -411,11 +414,26 @@ public class TreeModus extends FetchModus
 			ejectbutton.setBounds(77,7,162,68);
 			preferences_panel.add(ejectbutton);
 			
-		JToggleButton rootbutton = new JToggleButton("ROOT");
+		rootbutton = new JToggleButton("ROOT");
 			rootbutton.setActionCommand("root");
 			rootbutton.addActionListener(this);
-			rootbutton.setBounds(78,231,84,36);
+			rootbutton.setBounds(58,181,84,36);
+			rootbutton.setSelected(Boolean.parseBoolean(preferences.get(PrefLabels.ROOT_ACCESS.index)));
 			preferences_panel.add(rootbutton);
+
+		leafbutton = new JToggleButton("LEAF");
+			leafbutton.setActionCommand("leaf");
+			leafbutton.addActionListener(this);
+			leafbutton.setBounds(142,181,84,36);
+			leafbutton.setSelected(!Boolean.parseBoolean(preferences.get(PrefLabels.ROOT_ACCESS.index)));
+			preferences_panel.add(leafbutton);
+			
+		JCheckBox autobalance = new JCheckBox("auto-balance");
+			autobalance.setActionCommand("autobalance");
+			autobalance.addActionListener(this);
+			autobalance.setSelected(Boolean.parseBoolean(preferences.get(PrefLabels.AUTO_BALANCE.index)));
+			autobalance.setBounds(54,260,165,19);
+			preferences_panel.add(autobalance);
 			
 		preferences_panel.validate();
 	}
@@ -464,10 +482,11 @@ public class TreeModus extends FetchModus
 			a.run();
 			node.x = node.getX();
 			node.y = node.getY();
-			if(node.isLeaf())
-			{ card.setAccessible(true); }
+
+			if(preferences.get(PrefLabels.ROOT_ACCESS.index).equals("false"))
+				card.setAccessible(node.isLeaf());
 			else
-			{ card.setAccessible(false); }
+				card.setAccessible(node.isRoot());
 
 			if(preferences.get(PrefLabels.ROOT_ACCESS.index).equals("true"))
 				card.setLayer(100-node.getY()+node.getX());
@@ -487,9 +506,22 @@ public class TreeModus extends FetchModus
 		m.setIcons(icons);
 		m.open(card);
 		if(tree.getNodeWithCard(card).isRoot())
-		{ tree = null; }
+		{ eject(); }
 		else
 		{ tree.remove(card); }
+		arrangeCards();
+	}
+	
+	private void eject()
+	{
+		for(SylladexCard card : cards)
+		{
+			m.open(card);
+		}
+		cards.clear();
+		icons.clear();
+		m.setIcons(icons);
+		tree = null;
 		arrangeCards();
 	}
 	
@@ -517,6 +549,44 @@ public class TreeModus extends FetchModus
 			if(preferences.get(PrefLabels.AUTO_BALANCE.index).equals("true"))
 				last.balance();
 			arrangeCards();
+		}
+		else if(e.getActionCommand().equals("eject"))
+		{
+			int n = JOptionPane.showOptionDialog(preferences_panel, "EJECT ALL ITEMS FROM SYLLADEX?", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[] {"Y", "N"}, "N");
+			if(n==0)
+				eject();
+		}
+		else if(e.getActionCommand().equals("root"))
+		{
+			preferences.set(PrefLabels.ROOT_ACCESS.index, "true");
+			leafbutton.setSelected(false);
+			arrangeCards();
+		}
+		else if(e.getActionCommand().equals("leaf"))
+		{
+			preferences.set(PrefLabels.ROOT_ACCESS.index, "false");
+			rootbutton.setSelected(false);
+			arrangeCards();
+		}
+		else if(e.getActionCommand().equals("autobalance"))
+		{
+			if(preferences.get(PrefLabels.AUTO_BALANCE.index).equals("true"))
+			{
+				preferences.set(PrefLabels.AUTO_BALANCE.index, "false");
+			}
+			else
+			{
+				int n = JOptionPane.showOptionDialog(preferences_panel, "ENABLING AUTO-BALANCE WILL EJECT SYLLADEX. ARE YOU SURE?", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[] {"Y", "N"}, "N");
+				if(n==0)
+				{
+					eject();
+					preferences.set(PrefLabels.AUTO_BALANCE.index, "true");
+				}
+				else
+				{
+					((JCheckBox)e.getSource()).setSelected(false);
+				}
+			}
 		}
 	}
 	
