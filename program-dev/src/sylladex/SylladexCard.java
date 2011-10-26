@@ -279,6 +279,8 @@ public class SylladexCard implements MouseInputListener
 		this.widget = widget;
 		if(widget!=null)
 		{
+			widget.card = this;
+			
 			file = null;
 			image = null;
 			string = null;

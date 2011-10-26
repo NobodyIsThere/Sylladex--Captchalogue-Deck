@@ -44,6 +44,7 @@ public class RPObject extends Widget implements MouseListener
 			img = new File("widgets/RPObject/missing.gif");
 			setImages(img);
 		}
+		panel.setOpaque(false);
 		panel.addMouseListener(this);
 	}
 	
@@ -83,6 +84,11 @@ public class RPObject extends Widget implements MouseListener
 	
 	private void generateCode()
 	{
+		if(string.length()<2)
+		{
+			code = string;
+			return;
+		}
 		byte[] bytes = null;
 		MessageDigest d = null;
 		try
@@ -145,9 +151,13 @@ public class RPObject extends Widget implements MouseListener
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
-		if(e.getButton()==MouseEvent.BUTTON2)
+		if(e.getButton()==MouseEvent.BUTTON3)
 		{
-			
+			JOptionPane.showMessageDialog(null, "The CAPTCHA code reads: " + code);
+		}
+		else
+		{
+			m.getModus().open(card);
 		}
 	}
 
