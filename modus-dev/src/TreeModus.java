@@ -3,6 +3,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.*;
 import sylladex.*;
 import sylladex.Animation.AnimationType;
@@ -56,7 +57,7 @@ public class TreeModus extends FetchModus
 		{ index = i; }
 	}
 	
-	private class Tree
+	private class Tree implements Iterable<SylladexCard>, Iterator<SylladexCard>
 	{
 		private Node treeroot;
 		
@@ -394,12 +395,99 @@ public class TreeModus extends FetchModus
 				return anims;
 			}
 		}
+
+		
+		private ArrayList<Node> visited = new ArrayList<Node>();
+		
+		public boolean hasNext()
+		{
+			for(SylladexCard card : cards)
+			{
+				Node node = getNodeWithCard(card);
+				if(!visited.contains(node))
+					return true;
+			}
+			visited.clear();
+			return false;
+		}
+
+		public SylladexCard next()
+		{
+			boolean success = false;
+			
+			if(visited.size()==0)
+			{
+				visited.add(treeroot);
+				return treeroot.card;
+			}
+			else
+			{
+				while(success==false)
+				{
+					Node lastvisited = visited.get(visited.size()-1);
+					
+					//Have we been to the left of here?
+					if(!visited.contains(lastvisited.left) && lastvisited.left!=null)
+					{
+						visited.add(lastvisited.left);
+						success=true;
+						return lastvisited.left.card;
+					}
+					else if(!visited.contains(lastvisited.right) && lastvisited.right!=null)
+					{
+						visited.add(lastvisited.right);
+						success=true;
+						return lastvisited.right.card;
+					}
+					else
+					{
+						visited.add(lastvisited.parent);
+					}
+				}
+			}
+			return null;
+		}
+
+		@Override
+		public Iterator<SylladexCard> iterator()
+		{
+			return this;
+		}
+
+		@Override
+		public void remove(){}
+
 	}
 	
 	@Override
 	public void prepare()
 	{
+		loadItems();
 		populatePreferencesPanel();
+	}
+	
+	private void loadItems()
+	{
+		for(String line : items)
+		{
+			if(line!="")
+			{
+				Object o = m.getItem(line);
+				if(m.getNextEmptyCard()==null){ m.addCard(); }
+				SylladexCard card = m.getNextEmptyCard();
+				card.setItem(o);
+				
+				if(cards.size()==0){tree = new Tree(card);}
+				else {tree.add(card);}
+				
+				JLabel icon = m.getIconLabelFromObject(o);
+				icons.add(icon);
+				card.setIcon(icon);
+				cards.add(card);
+				m.setIcons(icons);
+			}
+		}
+		arrangeCards();
 	}
 	
 	private void populatePreferencesPanel()
@@ -446,14 +534,13 @@ public class TreeModus extends FetchModus
 		if(m.getNextEmptyCard()==null)
 			return;
 		SylladexCard card = m.getNextEmptyCard();
+		card.setItem(o);
 		if(cards.size()==0)
 		{
-			card.setItem(o);
 			tree = new Tree(card);
 		}
 		else
 		{
-			card.setItem(o);
 			tree.add(card);
 		}
 		
@@ -537,8 +624,13 @@ public class TreeModus extends FetchModus
 	@Override
 	public ArrayList<String> getItems()
 	{
-		// TODO Auto-generated method stub
-		return new ArrayList<String>();
+		ArrayList<String> i = new ArrayList<String>();
+		
+		for(SylladexCard card : tree)
+		{
+			i.add(card.getSaveString());
+		}
+		return i;
 	}
 
 	@Override
