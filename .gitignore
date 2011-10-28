@@ -1,0 +1,7 @@
+.metadata
+*.classpath
+*.project
+program-dev/modi/items/
+program-dev/modi/prefs/
+program-dev/rss.xml
+program-dev/bin

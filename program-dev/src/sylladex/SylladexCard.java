@@ -16,6 +16,7 @@ public class SylladexCard implements MouseInputListener
 	private Main deck;
 	private File file = null;
 	private String string = null;
+	private String imagestring = "IMAGE";
 	private Image image = null;
 	private Widget widget = null;
 	private JLabel icon; //dock icon
@@ -140,6 +141,15 @@ public class SylladexCard implements MouseInputListener
 		return null;
 	}
 	
+	public String getItemString()
+	{
+		if(file!=null){ return file.getName(); }
+		else if(image!=null){ return imagestring; }
+		else if(string!=null){ return string; }
+		else if(widget!=null){ return widget.getString(); }
+		return null;
+	}
+	
 	public void setItem(Object o)
 	{
 		if(o instanceof File)
@@ -172,9 +182,10 @@ public class SylladexCard implements MouseInputListener
 			Icon icon = Main.getIconFromFile(file);
 			String filename = file.getName();
 			cardicon = new JLabel(filename);
-			cardicon.setBounds(15*getWidth()/148,35*getHeight()/94,24*getWidth()/37,25*getHeight()/94);
+			cardicon.setBounds(15*getWidth()/148,35*getHeight()/94,24*getWidth()/37,82*getHeight()/188);
 			cardicon.setIcon(icon);
 			cardicon.setHorizontalAlignment(JLabel.CENTER);
+			cardicon.setVerticalAlignment(JLabel.TOP);
 			cardicon.setVerticalTextPosition(JLabel.BOTTOM);
 			cardicon.setHorizontalTextPosition(JLabel.CENTER);
 			
@@ -268,6 +279,8 @@ public class SylladexCard implements MouseInputListener
 		this.widget = widget;
 		if(widget!=null)
 		{
+			widget.card = this;
+			
 			file = null;
 			image = null;
 			string = null;
