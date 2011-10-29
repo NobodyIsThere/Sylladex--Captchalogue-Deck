@@ -8,6 +8,7 @@ import javax.swing.*;
 public class Animation implements ActionListener
 {
 	private JComponent comp;
+	private SylladexCard card;
 	
 	private Point startposition;
 	private Point finalposition;
@@ -17,7 +18,7 @@ public class Animation implements ActionListener
 	private String command = new String();
 	private Timer timer = new Timer(50, this);
 	
-	public enum AnimationType { MOVE, BOUNCE, BOUNCE_SPOT }
+	public enum AnimationType { MOVE, BOUNCE, BOUNCE_SPOT, WAIT }
 	
 	public Animation(JComponent comp, Point finalposition, AnimationType type, ActionListener listener, String command)
 	{
@@ -32,6 +33,7 @@ public class Animation implements ActionListener
 	
 	public Animation(SylladexCard card, Point finalposition, AnimationType type, ActionListener listener, String command)
 	{
+		this.card = card;
 		this.comp = card.getPanel();
 		this.startposition = card.getPosition();
 		this.finalposition = finalposition;
@@ -41,9 +43,25 @@ public class Animation implements ActionListener
 		this.command = command;
 	}
 	
+	//Only for WAIT
+	public Animation(AnimationType type, int duration, ActionListener listener, String command)
+	{
+		this.type = AnimationType.WAIT;
+		this.listener = listener;
+		this.command = command;
+		
+		timer.setInitialDelay(duration);
+		timer.setDelay(duration);
+	}
+	
 	public JComponent getComponent()
 	{
 		return comp;
+	}
+	
+	public SylladexCard getCard()
+	{
+		return card;
 	}
 	
 	public void run()
@@ -59,10 +77,30 @@ public class Animation implements ActionListener
 	
 	private void fireEvent()
 	{
+		if(card!=null)
+			card.setPosition(finalposition);
 		ActionEvent f = new ActionEvent(this, 413, command);
 		if(listener!=null)
 			listener.actionPerformed(f);
 	}
+	
+	public void setListener(ActionListener listener)
+	{this.listener = listener;}
+	
+	public void setActionCommand(String command)
+	{this.command = command;}
+	
+	public void setStartPosition(Point startposition)
+	{this.startposition = startposition;}
+	
+	public Point getStartPosition()
+	{return startposition;}
+	
+	public void setFinalPosition(Point finalposition)
+	{this.finalposition = finalposition;}
+	
+	public Point getFinalPosition()
+	{return finalposition;}
 
 	@Override
 	public void actionPerformed(ActionEvent e)
@@ -119,6 +157,11 @@ public class Animation implements ActionListener
 						timer.stop();
 						fireEvent();
 					}
+				}
+				case WAIT:
+				{
+					timer.stop();
+					fireEvent();
 				}
 			}
 		}

@@ -348,6 +348,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		preferences_frame = new JFrame();
 		preferences_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		preferences_frame.addWindowListener(this);
+		preferences_frame.setIconImage(Main.createImageIcon(modus.image_card).getImage());
 		JTabbedPane tabbedpane = new JTabbedPane();
 		
 		preferences_frame.setBackground(modus.getBackgroundColour());
@@ -455,7 +456,25 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	private void populateAboutPanel()
 	{
 		String string =
-			"use the credits in the Tree branch";
+			"<html>" +
+			"<b>Concept and art:</b><br/>" +
+			"Andrew Hussie<br/>" +
+			"<a href=\"http://www.mspaintadventures.com\">www.mspaintadventures.com</a><br/>" +
+			"-----<br/>" +
+			"<b>Sylladex Architect:</b><br/>" +
+			"gumptiousCreator<br/>" +
+			"-----<br/>" +
+			"<b>Additional Codesmiths:</b><br/>" +
+			"evacipatedBox<br/>" +
+			"Nokob<br/>" +
+			"-----<br/>" +
+			"<b>Additional Appearance Sculptors:</b><br/>" +
+			"aquaMarinist<br/>" +
+			"-----<br/>" +
+			"<b>Pixel Filchers:</b><br/>" +
+			"aquaMarinist<br/>" +
+			"The Cool<br/>" +
+			"ZDG";
 		about_panel.setLayout(new BoxLayout(about_panel, BoxLayout.PAGE_AXIS));
 		about_panel.add(new JLabel(string));
 	}

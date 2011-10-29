@@ -254,6 +254,7 @@ public class Main implements ActionListener, WindowListener
         else
             dock.setAlwaysOnTop(false);
 
+        dock.setIconImage(createImageIcon(modus.image_card).getImage());
         deckwidth = screensize.width;
         dock.setSize(new Dimension(deckwidth,100));
         if(prefs.top()==true)

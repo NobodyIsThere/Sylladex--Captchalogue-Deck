@@ -1,11 +1,21 @@
 import sylladex.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class RPObject extends Widget
+public class RPObject extends Widget implements MouseListener
 {
 	private String string = "RP";
+	private String code = "alternia";
 	private File img;
 	private final JFileChooser image_chooser = new JFileChooser();
 	
@@ -19,6 +29,7 @@ public class RPObject extends Widget
 	{
 		//Ask for a name
 		string = JOptionPane.showInputDialog("Enter a name for the item.");
+		generateCode();
 		//Accept an image
 		ImageFileFilter filter = new ImageFileFilter();
 		image_chooser.setFileFilter(filter);
@@ -33,6 +44,9 @@ public class RPObject extends Widget
 			img = new File("widgets/RPObject/missing.gif");
 			setImages(img);
 		}
+		
+		panel.setOpaque(false);
+		panel.addMouseListener(this);
 	}
 	
 	private void setImages(File img)
@@ -55,6 +69,10 @@ public class RPObject extends Widget
 		img = new File(savestring.substring(savestring.indexOf(";")+1));
 		if(img.exists())
 			setImages(img);
+		
+		generateCode();
+		panel.setOpaque(false);
+		panel.addMouseListener(this);
 	}
 	
 	@Override
@@ -69,6 +87,41 @@ public class RPObject extends Widget
 		return string + ";" + img.getPath();
 	}
 	
+	private void generateCode()
+	{
+		if(string.length()<2)
+		{
+			code = string;
+			return;
+		}
+		byte[] bytes = null;
+		MessageDigest d = null;
+		try
+		{
+			bytes = string.getBytes("UTF-8");
+			d = MessageDigest.getInstance("MD5");
+		}
+		catch (NoSuchAlgorithmException e){ e.printStackTrace(); }
+		catch (UnsupportedEncodingException e){ e.printStackTrace(); }
+		
+		byte[] digest = d.digest(bytes);
+		BigInteger big = new BigInteger(1,digest);
+		code = big.toString(36);
+		Pattern p = Pattern.compile("[0-9][a-z]([a-z])");
+		Matcher m = p.matcher(code);
+		ArrayList<String> groups = new ArrayList<String>();
+		while(m.find())
+		{
+			groups.add(m.group());
+		}
+		for(String s : groups)
+		{
+			code = code.replaceAll(s, s.toUpperCase());
+		}
+		code = code.replaceAll(groups.get(1).toUpperCase(), " ");
+		code = code.substring(0, 8);
+	}
+	
 	private class ImageFileFilter extends FileFilter
 	{
 
@@ -78,7 +131,8 @@ public class RPObject extends Widget
 			if(f.isDirectory()) { return true; }
 			
 			String extension = f.getName();
-			extension = extension.substring(extension.lastIndexOf("."));
+			if(extension.lastIndexOf(".")!=-1)
+				extension = extension.substring(extension.lastIndexOf("."));
 			
 			if(extension.equals(".gif")
 					|| extension.equals(".jpeg")
@@ -97,4 +151,34 @@ public class RPObject extends Widget
 		}
 		
 	}
+	
+
+	@Override
+	public void mouseClicked(MouseEvent e)
+	{
+		if(card.isAccessible())
+		{
+			if(e.getButton()==MouseEvent.BUTTON3)
+			{
+				JOptionPane.showMessageDialog(null, "The CAPTCHA code reads: " + code);
+			}
+		
+			else if(e.getButton()==MouseEvent.BUTTON1)
+			{
+				m.getModus().open(card);
+			}
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e){}
+
+	@Override
+	public void mouseExited(MouseEvent e){}
+
+	@Override
+	public void mousePressed(MouseEvent e){}
+
+	@Override
+	public void mouseReleased(MouseEvent e){}
 }
