@@ -348,6 +348,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		preferences_frame = new JFrame();
 		preferences_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		preferences_frame.addWindowListener(this);
+		preferences_frame.setIconImage(Main.createImageIcon(modus.image_card).getImage());
 		JTabbedPane tabbedpane = new JTabbedPane();
 		
 		preferences_frame.setBackground(modus.getBackgroundColour());
@@ -456,6 +457,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	{
 		String string =
 			"<html>" +
+			"<b>Concept and art:</b><br/>" +
+			"Andrew Hussie<br/>" +
+			"<a href=\"http://www.mspaintadventures.com\">www.mspaintadventures.com</a><br/>" +
+			"-----<br/>" +
 			"<b>Sylladex Architect:</b><br/>" +
 			"gumptiousCreator<br/>" +
 			"-----<br/>" +
