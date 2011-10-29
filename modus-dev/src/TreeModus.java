@@ -625,7 +625,7 @@ public class TreeModus extends FetchModus
 	public ArrayList<String> getItems()
 	{
 		ArrayList<String> i = new ArrayList<String>();
-		
+		if(tree==null){ return i; }
 		for(SylladexCard card : tree)
 		{
 			i.add(card.getSaveString());

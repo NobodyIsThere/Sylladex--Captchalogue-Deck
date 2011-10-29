@@ -172,7 +172,7 @@ public class Main implements ActionListener, WindowListener
                     java.util.List<File> fileList = (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : fileList)
                     {
-                    	if(file.getName().endsWith(".class"))
+                    	if(file.getName().endsWith(".class") || file.getName().endsWith(".sdw"))
                     	{
                     		Widget widget = loadWidget(file);
                     		addItem(widget);
@@ -495,7 +495,9 @@ public class Main implements ActionListener, WindowListener
     	{
     		URL[] url = { new File("widgets/").toURI().toURL() };
     		ClassLoader cl = new URLClassLoader(url);
-    		Class<?> wclass = cl.loadClass(file.getName().replaceAll("\\.class?", ""));
+    		String name = file.getName().replaceAll("\\.class?", "");
+    		name = name.replaceAll("\\.sdw?", "");
+    		Class<?> wclass = cl.loadClass(name);
     		Widget widget = (Widget) wclass.newInstance();
     		widget.setMain(this);
     		return widget;
