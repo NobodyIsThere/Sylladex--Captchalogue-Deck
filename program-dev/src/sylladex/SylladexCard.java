@@ -21,7 +21,7 @@ public class SylladexCard implements MouseInputListener
 	private Widget widget = null;
 	private JLabel icon; //dock icon
 	
-	private boolean accessible = false; //Whether or not the card is click-able
+	private boolean accessible = true; //Whether or not the card is click-able
 	
 	//Referring to my avatar
 	private Point position = new Point(0,0);

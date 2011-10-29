@@ -10,9 +10,16 @@ import sylladex.Animation.AnimationType;
 public class EncryptionModus extends FetchModus
 {
 	private boolean enabled = true;
+	private boolean openenabled = true;
 	private ArrayList<SylladexCard> cards;
 	private JWindow window;
 	private JLayeredPane pane;
+	
+	private JWindow hacking;
+	private Timer timer;
+	private JLabel pbar;
+	private int progress;
+	private SylladexCard hackcard;
 	
 	public EncryptionModus(Main m)
 	{
@@ -60,6 +67,27 @@ public class EncryptionModus extends FetchModus
 		pane.setLayout(null);
 		
 		window.add(pane);
+		
+		loadItems();
+	}
+	
+	private void loadItems()
+	{
+		for(String string : items)
+		{
+			if(!string.equals(""))
+			{
+				if(m.getNextEmptyCard()==null) { m.addCard(); }
+				SylladexCard card = m.getNextEmptyCard();
+				Object o = m.getItem(string);
+				card.setItem(o);
+				cards.add(card);
+				JLabel icon = m.getIconLabelFromObject(o);
+				icons.add(icon);
+				m.setIcons(icons);
+				card.setIcon(icon);
+			}
+		}
 	}
 	
 	private void animate(SylladexCard card)
@@ -92,28 +120,76 @@ public class EncryptionModus extends FetchModus
 	@Override
 	public void open(SylladexCard card)
 	{
-		// TODO Auto-generated method stub
+		if(openenabled==false){ return; }
+		openenabled = false;
 		
+		progress = 0;
+		
+		hacking = new JWindow();
+		hacking.setBounds(0, 0, 296, 376);
+		hacking.setLocationRelativeTo(null);
+		hacking.setLayout(null);
+		Main.setTransparent(hacking);
+		
+		JLayeredPane panel = new JLayeredPane();
+		panel.setBounds(0,0,296,376);
+		panel.setLayout(null);
+		JLabel animation = new JLabel(Main.createImageIcon("modi/encryption/hacking.gif"));
+		animation.setBounds(0,0,296,376);
+		panel.setLayer(animation, 0);
+		panel.add(animation);
+		
+		pbar = new JLabel();
+		pbar.setBounds(276,262,0,10);
+		pbar.setBackground(new Color(69,242,0));
+		pbar.setOpaque(true);
+		panel.setLayer(pbar, 1);
+		panel.add(pbar);
+		
+		hacking.add(panel);
+		hacking.setVisible(true);
+		
+		hackcard = card;
+		timer = new Timer(1500, this);
+		timer.setActionCommand("progress");
+		timer.start();
+	}
+	
+	private void actuallyOpen(SylladexCard card)
+	{
+		icons.remove(card.getIcon());
+		icons.trimToSize();
+		m.setIcons(icons);
+		cards.remove(card);
+		m.open(card);
 	}
 	
 	@Override
 	public void addCard()
 	{
-		// TODO Auto-generated method stub
-		
+		m.addCard();
 	}
 	
 	@Override
-	public void showSelectionWindow()
-	{
-		// TODO Auto-generated method stub
-		
-	}
+	public void showSelectionWindow(){}
 	
 	@Override
 	public ArrayList<String> getItems()
 	{
-		return new ArrayList<String>();
+		hacking.setVisible(false);
+		hacking.removeAll();
+		timer.stop();
+		
+		ArrayList<String> items = new ArrayList<String>();
+		if(cards.size()>0)
+		{
+			for(SylladexCard card : cards)
+			{
+				items.add(card.getSaveString());
+			}
+		}
+		else { items.add(""); }
+		return items;
 	}
 
 	
@@ -160,6 +236,21 @@ public class EncryptionModus extends FetchModus
 		else if(e.getActionCommand().equals("vault down"))
 		{
 			enabled = true;
+		}
+		else if(e.getActionCommand().equals("progress"))
+		{
+			progress+=Math.random()*5;
+			if(progress>100){ progress = 100; }
+			int x = 230*progress/100;
+			pbar.setBounds(276-x,262,x,10);
+			pbar.repaint();
+			
+			if(progress==100)
+			{
+				actuallyOpen(hackcard);
+				openenabled=true;
+				hacking.setVisible(false);
+			}
 		}
 	}
 	
