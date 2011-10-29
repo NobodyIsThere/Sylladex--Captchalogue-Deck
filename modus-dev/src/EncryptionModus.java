@@ -140,7 +140,7 @@ public class EncryptionModus extends FetchModus
 		panel.add(animation);
 		
 		pbar = new JLabel();
-		pbar.setBounds(276,262,0,10);
+		pbar.setBounds(275,262,1,10);
 		pbar.setBackground(new Color(69,242,0));
 		pbar.setOpaque(true);
 		panel.setLayer(pbar, 1);
