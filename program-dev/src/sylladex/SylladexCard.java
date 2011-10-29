@@ -150,6 +150,11 @@ public class SylladexCard implements MouseInputListener
 		return null;
 	}
 	
+	public void setImageString(String s)
+	{
+		imagestring = s;
+	}
+	
 	public void setItem(Object o)
 	{
 		if(o instanceof File)
