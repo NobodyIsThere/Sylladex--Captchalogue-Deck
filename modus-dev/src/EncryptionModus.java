@@ -15,8 +15,8 @@ public class EncryptionModus extends FetchModus
 	private JWindow window;
 	private JLayeredPane pane;
 	
-	private JWindow hacking;
-	private Timer timer;
+	private JWindow hacking = new JWindow();
+	private Timer timer = new Timer(1500, this);
 	private JLabel pbar;
 	private int progress;
 	private SylladexCard hackcard;
@@ -124,7 +124,7 @@ public class EncryptionModus extends FetchModus
 		openenabled = false;
 		
 		progress = 0;
-		
+
 		hacking = new JWindow();
 		hacking.setBounds(0, 0, 296, 376);
 		hacking.setLocationRelativeTo(null);
@@ -152,7 +152,7 @@ public class EncryptionModus extends FetchModus
 		hackcard = card;
 		timer = new Timer(1500, this);
 		timer.setActionCommand("progress");
-		timer.start();
+		timer.restart();
 	}
 	
 	private void actuallyOpen(SylladexCard card)
@@ -250,6 +250,8 @@ public class EncryptionModus extends FetchModus
 				actuallyOpen(hackcard);
 				openenabled=true;
 				hacking.setVisible(false);
+				progress = 0;
+				timer.stop();
 			}
 		}
 	}
