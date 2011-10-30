@@ -291,7 +291,7 @@ public class TreeModus extends FetchModus
 				{
 					if(left!=null)
 					{ return left.leftWidth() + left.rightWidth(); }
-					return 0;
+					return card_width + 20;
 				}
 				else
 				{

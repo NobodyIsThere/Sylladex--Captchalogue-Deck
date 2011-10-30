@@ -23,8 +23,6 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	private JLayeredPane box;
 	private SylladexCard card;
 	
-	private Animation anim;
-	private Timer waittimer = new Timer(2000, this);
 	private JLabel collisionicon;
 	
 	private String string;
@@ -244,7 +242,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		box.setLayer(background, 0);
 		box.add(background);
 		
-		stringline = new JLabel(string);
+		stringline = new JLabel(colour(string));
 		stringline.setBounds(14,18,202,14);
 		stringline.setHorizontalAlignment(JLabel.CENTER);
 		stringline.setVerticalAlignment(JLabel.TOP);
@@ -346,48 +344,54 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	{
 		// The "accessible" thing is because this modus only supports adding one file
 		// at a time (to allow time for the animation to complete).
-		if(accessible)
+		try
 		{
-			accessible = false;
-			
-			item = o;
-			
-			string = getString(o);
-			
-			// Sets the hashmap
-			loadMapping();
-			
-			//Loop through string
-			calculation = new String("");
-			numbers = new String("");
-			String longstring = new String("");
-			total = 0;
-			for(int i=0; i<string.length(); i++)
+			if(accessible)
 			{
-				String s = string.charAt(i) + "";
-				Integer value = map.get(s);
-				if(value == null){ value = 0; }
+				accessible = false;
 				
-				longstring = longstring.concat(" " + s);
-				numbers = numbers.concat(" " + value.toString());
-				calculation = calculation.concat(" + " + value.toString());
-				total += value;
+				item = o;
+				
+				string = getString(o);
+				
+				doWork();
+				
+				card = m.getCards().get(answer);
+				Animation a3 = new Animation(card, new Point(card.getWidth(),card.getPosition().y), AnimationType.BOUNCE, this, "add animation");
+				Animation a2 = new Animation(AnimationType.WAIT, 2000, a3, "run");
+				new Animation(box, new Point(0,244), AnimationType.MOVE, a2, "run").run();
 			}
-			//Trim off the first characters
-			string = longstring.substring(1);
-			numbers = numbers.substring(1);
-			calculation = calculation.substring(3);
-			answer = total%m.getCards().size();
+		}catch(Exception e){e.printStackTrace();}
+	}
+	
+	private void doWork()
+	{
+		// Sets the hashmap
+		loadMapping();
+		
+		//Loop through string
+		calculation = new String("");
+		numbers = new String("");
+		String longstring = new String("");
+		total = 0;
+		for(int i=0; i<string.length(); i++)
+		{
+			String s = string.charAt(i) + "";
+			Integer value = map.get(s);
+			if(value == null){ value = 0; }
 			
-			createBox();
-			
-			anim = new Animation(box, new Point(0,244), AnimationType.MOVE, this, "box down");
-			anim.run();
-			// Wait until the .gif finishes.
-			waittimer.setActionCommand("box down wait");
-			waittimer.setInitialDelay(2000);
-			waittimer.restart();
+			longstring = longstring.concat(" " + s);
+			numbers = numbers.concat(" " + value.toString());
+			calculation = calculation.concat(" + " + value.toString());
+			total += value;
 		}
+		//Trim off the first characters
+		string = longstring.substring(1);
+		numbers = numbers.substring(1);
+		calculation = calculation.substring(3);
+		answer = total%m.getCards().size();
+		
+		createBox();
 	}
 
 	private void eject()
@@ -413,7 +417,21 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	public void addCard(){}
 	
 	@Override
-	public void showSelectionWindow(){}
+	public void showSelectionWindow()
+	{
+		if(accessible==false){ return; }
+		accessible = false;
+		
+		string = " ";
+		string = getString(JOptionPane.showInputDialog(""));
+		
+		doWork();
+		
+		SylladexCard card = m.getCards().get(answer);
+		Animation a3 = new Animation(card, new Point(card.getWidth(),card.getPosition().y), AnimationType.BOUNCE, this, "open animation");
+		Animation a2 = new Animation(AnimationType.WAIT, 2000, a3, "run");
+		new Animation(box, new Point(0,244), AnimationType.MOVE, a2, "run").run();
+	}
 
 	private void arrangeCards()
 	{
@@ -429,59 +447,55 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getActionCommand().equals("box down"))
-		{
-			stringline.setText(colour(stringline.getText()));
-		}
-		else if(e.getActionCommand().equals("box down wait"))
-		{
-			waittimer.stop();
-			card = m.getCards().get(answer);
-			anim = new Animation(card, new Point(card.getWidth(),card.getPosition().y), AnimationType.BOUNCE, this, "card out");
-			anim.run();
-		}
-		else if(e.getActionCommand().equals("box up"))
+		if(e.getActionCommand().equals("box up"))
 		{
 			window.removeAll();
 			window.setVisible(false);
 			accessible = true;
+			
+			for(SylladexCard card : m.getCards())
+			{
+				if(!card.isEmpty())
+				{ card.getForeground().removeAll(); }
+			}
 		}
-		else if(e.getActionCommand().equals("card in"))
+		else if(e.getActionCommand().equals("add animation"))
 		{
-			// TODO is this necessary?
-			arrangeCards();
-		}
-		else if(e.getActionCommand().equals("card out"))
-		{
+			SylladexCard c = ((Animation)e.getSource()).getCard();
+			
 			if(preferences.get(PrefLabels.DETECT_COLLISIONS.index).equals("false"))
 			{
-				if(!card.isEmpty()) { open(card); }
+				if(!c.isEmpty()) { open(c); }
 			}
-			if(card.isEmpty())
+			if(c.isEmpty())
 			{
-				card.setItem(item);
-				card.setAccessible(true);
+				c.setItem(item);
+				c.setAccessible(true);
 				JLabel icon = m.getIconLabelFromObject(item);
 				icons.set(answer, icon);
-				card.setIcon(icon);
+				c.setIcon(icon);
 				m.setIcons(icons);
 			}
 			else
 			{
 				// Collision detected!
-				card.getForeground().add(collisionicon);
+				c.getForeground().add(collisionicon);
 			}
-			waittimer.setInitialDelay(1000);
-			waittimer.setActionCommand("card wait");
-			waittimer.restart();
+
+			Animation a3 = new Animation(box, new Point(0,0), AnimationType.MOVE, this, "box up");
+			Animation a2 = new Animation(c, new Point(0,c.getPosition().y), AnimationType.MOVE, a3, "run");
+			new Animation(AnimationType.WAIT, 1000, a2, "run").run();
 		}
-		else if(e.getActionCommand().equals("card wait"))
+		else if(e.getActionCommand().equals("open animation"))
 		{
-			waittimer.stop();
-			card.getForeground().removeAll();
-			new Animation(card, new Point(0, card.getPosition().y), AnimationType.MOVE, this, "card in").run();
-			anim = new Animation(box, new Point(0,0), AnimationType.MOVE, this, "box up");
-			anim.run();
+			
+			SylladexCard c = ((Animation)e.getSource()).getCard();
+			if(!c.isEmpty())
+				open(c);
+			
+			Animation a3 = new Animation(box, new Point(0,0), AnimationType.MOVE, this, "box up");
+			Animation a2 = new Animation(c, new Point(0,c.getPosition().y), AnimationType.MOVE, a3, "run");
+			new Animation(AnimationType.WAIT, 1000, a2, "run").run();
 		}
 		else if(e.getActionCommand().equals("card mouse enter"))
 		{
