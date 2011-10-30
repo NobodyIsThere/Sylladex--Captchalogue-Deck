@@ -1,9 +1,0 @@
-top:false
-autohide_dock:true
-always_on_top_dock:true
-usb_mode:false
-offset:0
-autohide_cards:false
-always_on_top_cards:true
-copy:false
-fetchmodus:EncryptionModus
