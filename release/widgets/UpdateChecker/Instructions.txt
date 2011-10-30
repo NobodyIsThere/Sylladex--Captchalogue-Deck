@@ -1,0 +1,21 @@
+Checking for updates will be taken care of by the charming Doc Scratch.
+
+Normally, he will just stand there.
+In this state, using the widget (i.e., clicking on it; I would recommend right-clicking, since taking the Update Checker out of your sylladex means that it won't save anything) will open the preferences dialog. This allows you to set the frequency with which the good Doc will make his checks.
+
+When an update is detected, the creator of MSPA himself, Andrew Hussie, will come and shake Scratch in excitement, notifying you of the new
+content.
+In this state, using the widget will open MSPA in your default browser.
+If you close the sylladex while the widget is in this state, the update state will carry over to when you next open it.
+
+If Doc Scratch is unable to find an internet connection, you'll see him banging against his fenestrated wall, trying to get it to work.
+(I am not entirely sure that I can distinguish between a lack of internet connection and some other error; if this appears when you know that you have a connection, or if the general error state appears but is fixed by connecting to the web, please tell me.)
+In both this state and the general error state, using the widget will output information about the error to the standard output.
+
+If an error occurs, Scratch will revert to a puppet.
+
+When Scratch checks for an update, you will see him use his First Guardian powers.
+This should happen in every state except after an update is detected, since you already know there's an update.
+In this case, opening MSPA through the widget will make it go back to the no-update state and resume checks.
+
+Note: the images that appear on the cards are a fixed size, meant to fit on the default cards. This is because they're animated, which means that normal resizing doesn't seem to work.
