@@ -381,7 +381,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			if(top){ topbox.setSelectedIndex(1); } else { topbox.setSelectedIndex(0); }
 			topbox.addActionListener(this);
 		
-		dock_offset = new JSlider(JSlider.HORIZONTAL, 0, 200, offset);
+		dock_offset = new JSlider(JSlider.HORIZONTAL, -90, 200, offset);
 			dock_offset.addChangeListener(this);
 		
 		ahdock = new JCheckBox("Auto-hide");

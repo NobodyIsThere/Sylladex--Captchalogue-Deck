@@ -237,6 +237,7 @@ public class Main implements ActionListener, WindowListener
         dock.setTitle("Sylladex::Captchalogue Deck");
         dock.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         dock.addWindowListener(this);
+        
         //Components
         dock.setLayout(null);
         refreshDock();
