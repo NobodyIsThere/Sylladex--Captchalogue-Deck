@@ -127,14 +127,15 @@ public class UpdateChecker extends Widget
 
 				private Status check()
 					{
-						SwingUtilities.invokeLater(new Runnable(){
-							@Override
-							public void run()
-								{
-									//check icon takes 600 ms to play
-									changeIcon(dockCheckIcon, cardCheckIcon, 600);
-								}
-						});
+						if(!justRead) //if justRead, not really a check
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run()
+									{
+										//check icon takes 600 ms to play
+										changeIcon(dockCheckIcon, cardCheckIcon, 600);
+									}
+							});
 						try
 							{
 								InputStream rssStream = null;
@@ -151,18 +152,19 @@ public class UpdateChecker extends Widget
 										if(!scanner.hasNextInt())
 											return new Status(rssProblem);
 										int latestAdventure = scanner.nextInt();
+										boolean update = false;
 										if(latestAdventure > adventure) //new adventure!
 											{
 												adventure = latestAdventure;
-												return new Status(State.UPDATE);
+												update = true;
 											}
 										int latestPage = scanner.nextInt();
 										if(latestPage > lastPage) //update!
 											{
 												lastPage = latestPage;
-												return new Status(State.UPDATE);
+												update = true;
 											}
-										return new Status(State.NO_UPDATE); // :(
+										return new Status(update ? State.UPDATE : State.NO_UPDATE);
 									}
 								//I think this indicates there isn't an internet connection?
 								//I found it from a Google search
@@ -315,16 +317,16 @@ public class UpdateChecker extends Widget
 			}
 
 		/**
+		 * Schedules a check based on the parameters and sets it to <code>check</code>.
 		 * @param adventure the number of the current adventure
 		 * @param lastPage the number of the last page read
 		 * @param justRead if <code>true</code>, uses the first check just to get
 		 *        up-to-date (see {@link Check#run()})
 		 */
-		private Check scheduleCheck(int adventure, int lastPage, boolean justRead)
+		private void scheduleCheck(int adventure, int lastPage, boolean justRead)
 			{
-				Check check = new Check(adventure, lastPage, justRead);
+				check = new Check(adventure, lastPage, justRead);
 				timer.schedule(check, 0, TimeUnit.SECONDS.toMillis(checkInterval));
-				return check;
 			}
 
 		/** Initialization; called by both prepare() and load(). */
@@ -339,7 +341,7 @@ public class UpdateChecker extends Widget
 			{
 				checkInterval = DEFAULT_CHECK_INTERVAL;
 				setState(State.NO_UPDATE);
-				check = scheduleCheck(0, 0, true); //use first check to get up-to-date
+				scheduleCheck(0, 0, true); //use first check to get up-to-date
 				init();
 			}
 		@Override
@@ -374,7 +376,7 @@ public class UpdateChecker extends Widget
 				else
 					{
 						setState(State.NO_UPDATE);
-						check = scheduleCheck(adventure, lastPage, false);
+						scheduleCheck(adventure, lastPage, false);
 					}
 				init();
 			}
@@ -415,7 +417,7 @@ public class UpdateChecker extends Widget
 					{
 						case UPDATE: {
 							setState(State.NO_UPDATE);
-							check = scheduleCheck(check.getAdventure(), check.getLastPage(), true);
+							scheduleCheck(check.getAdventure(), check.getLastPage(), true);
 							if(Desktop.isDesktopSupported())
 								{
 									Desktop desktop = Desktop.getDesktop();
