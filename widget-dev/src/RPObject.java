@@ -27,26 +27,7 @@ public class RPObject extends Widget implements MouseListener
 	@Override
 	public void prepare()
 	{
-		//Ask for a name
-		string = JOptionPane.showInputDialog("Enter a name for the item.");
-		generateCode();
-		//Accept an image
-		ImageFileFilter filter = new ImageFileFilter();
-		image_chooser.setFileFilter(filter);
-		int decision = image_chooser.showOpenDialog(dock_icon);
-		if(decision==JFileChooser.APPROVE_OPTION)
-		{
-			img = image_chooser.getSelectedFile();
-			setImages(img);
-		}
-		else
-		{
-			img = new File("widgets/RPObject/missing.gif");
-			setImages(img);
-		}
-		
 		panel.setOpaque(false);
-		panel.addMouseListener(this);
 	}
 	
 	private void setImages(File img)
@@ -71,8 +52,6 @@ public class RPObject extends Widget implements MouseListener
 			setImages(img);
 		
 		generateCode();
-		panel.setOpaque(false);
-		panel.addMouseListener(this);
 	}
 	
 	@Override
@@ -181,4 +160,26 @@ public class RPObject extends Widget implements MouseListener
 
 	@Override
 	public void mouseReleased(MouseEvent e){}
+
+	@Override
+	public void add()
+	{
+		//Ask for a name
+		string = JOptionPane.showInputDialog("Enter a name for the item.");
+		generateCode();
+		//Accept an image
+		ImageFileFilter filter = new ImageFileFilter();
+		image_chooser.setFileFilter(filter);
+		int decision = image_chooser.showOpenDialog(dock_icon);
+		if(decision==JFileChooser.APPROVE_OPTION)
+		{
+			img = image_chooser.getSelectedFile();
+			setImages(img);
+		}
+		else
+		{
+			img = new File("widgets/RPObject/missing.gif");
+			setImages(img);
+		}
+	}
 }

@@ -294,6 +294,7 @@ public class SylladexCard implements MouseInputListener
 			widgetpanel.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
 			pane.setLayer(widgetpanel, 1);
 			pane.add(widgetpanel);
+			widgetpanel.addMouseListener(this);
 			
 			if(!deck.getModus().draw_empty_cards)
 				addToCardHolder();
@@ -396,14 +397,21 @@ public class SylladexCard implements MouseInputListener
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
-		if(e.getSource().equals(cardicon) || e.getSource().equals(cardtext) || e.getSource().equals(icon))
+		if(e.getSource().equals(cardicon) || e.getSource().equals(cardtext) || e.getSource().equals(widgetpanel) || e.getSource().equals(icon))
 		{
 			if(accessible)
 			{
-				if(e.getButton()==MouseEvent.BUTTON1)
-					deck.getModus().open(this);
+				if(widget==null)
+				{
+					if(e.getButton()==MouseEvent.BUTTON1)
+						deck.getModus().open(this);
+					else
+						deck.openWithoutRemoval(this);
+				}
 				else
-					deck.openWithoutRemoval(this);
+				{
+					widget.mouseClicked(e);
+				}
 			}
 		}
 	}
@@ -412,21 +420,55 @@ public class SylladexCard implements MouseInputListener
 	{
 		deck.getModus().actionPerformed(new ActionEvent(this, 612, "card mouse enter"));
 		deck.getCardHolder().getMouseListeners()[0].mouseEntered(e);
+		
+		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		{
+			widget.mouseEntered(e);
+		}
 	}
 	@Override
 	public void mouseExited(MouseEvent e)
 	{
 		deck.getModus().actionPerformed(new ActionEvent(this, 613, "card mouse exit"));
 		deck.getCardHolder().getMouseListeners()[0].mouseExited(e);
+		
+		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		{
+			widget.mouseExited(e);
+		}
 	}
 	@Override
-	public void mousePressed(MouseEvent e){}
+	public void mousePressed(MouseEvent e)
+	{
+		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		{
+			widget.mousePressed(e);
+		}
+	}
 	@Override
-	public void mouseReleased(MouseEvent e){}
+	public void mouseReleased(MouseEvent e)
+	{
+		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		{
+			widget.mouseReleased(e);
+		}	
+	}
 	@Override
-	public void mouseDragged(MouseEvent arg0){}
+	public void mouseDragged(MouseEvent e)
+	{
+		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		{
+			widget.mouseEntered(e);
+		}
+	}
 	@Override
-	public void mouseMoved(MouseEvent arg0){}
+	public void mouseMoved(MouseEvent e)
+	{
+		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		{
+			widget.mouseEntered(e);
+		}
+	}
 	
 	private class DragListener implements MouseListener, MouseMotionListener
 	{

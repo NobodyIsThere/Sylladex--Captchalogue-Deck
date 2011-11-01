@@ -1,5 +1,6 @@
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -457,4 +458,17 @@ public class UpdateChecker extends Widget
 			{
 				return (state == State.UPDATE ? 'u' : 'n') + ";" + checkInterval + ";" + check.getAdventure() + ";" + check.getLastPage();
 			}
+		
+		@Override
+		public void mouseClicked(MouseEvent arg0){}
+		@Override
+		public void mouseEntered(MouseEvent arg0){}
+		@Override
+		public void mouseExited(MouseEvent arg0){}
+		@Override
+		public void mousePressed(MouseEvent arg0){}
+		@Override
+		public void mouseReleased(MouseEvent arg0){}
+		@Override
+		public void add(){}
 	}

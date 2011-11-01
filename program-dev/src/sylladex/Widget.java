@@ -1,9 +1,10 @@
 package sylladex;
 
+import java.awt.event.MouseListener;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 
-public abstract class Widget
+public abstract class Widget implements MouseListener
 {
 	protected SylladexCard card;
 	protected JPanel panel = new JPanel();
@@ -11,6 +12,7 @@ public abstract class Widget
 	protected Main m;
 	
 	public abstract void prepare();
+	public abstract void add();
 	public abstract void load(String string);
 	public abstract void open();
 	public abstract String getString();

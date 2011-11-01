@@ -311,6 +311,8 @@ public class Main implements ActionListener, WindowListener
         modus.getBackground().setBounds(0,0,deckwidth,100);
         modus.getBackground().setOpaque(false);
 
+        modus.getBackground().removeMouseListener(docklistener);
+        modus.getBackground().removeMouseMotionListener(docklistener);
         modus.getBackground().addMouseListener(docklistener);
         modus.getBackground().addMouseMotionListener(docklistener);
 
@@ -501,6 +503,7 @@ public class Main implements ActionListener, WindowListener
     		Class<?> wclass = cl.loadClass(name);
     		Widget widget = (Widget) wclass.newInstance();
     		widget.setMain(this);
+    		widget.prepare();
     		return widget;
     	}
     	catch (Exception e) {e.printStackTrace();}
@@ -551,7 +554,7 @@ public class Main implements ActionListener, WindowListener
 
     public void addItem(Widget widget)
     {
-    	widget.prepare();
+    	widget.add();
         modus.addItem(widget);
     }
 
