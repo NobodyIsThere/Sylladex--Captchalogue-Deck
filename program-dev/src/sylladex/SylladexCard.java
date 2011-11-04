@@ -31,6 +31,7 @@ public class SylladexCard implements MouseInputListener
 	private JTextArea cardtext; //mine - shows strings
 	private JPanel widgetpanel; //controlled by the widget.
 	private JPanel foreground;
+	private JPanel holes;
 	
 	private JLabel inaccessible;
 	
@@ -63,6 +64,11 @@ public class SylladexCard implements MouseInputListener
 		foreground.setBounds(0,0,getWidth(),getHeight());
 		foreground.setOpaque(false);
 		foreground.setLayout(null);
+		
+		holes = new JPanel();
+		holes.setBounds(0,0,getWidth(),getHeight());
+		holes.setOpaque(false);
+		holes.setLayout(null);
 		
 		cardbg.addMouseListener(this);
 		cardbg.addMouseMotionListener(this);

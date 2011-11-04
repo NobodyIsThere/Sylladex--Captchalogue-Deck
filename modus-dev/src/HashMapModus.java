@@ -422,8 +422,9 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		if(accessible==false){ return; }
 		accessible = false;
 		
-		string = " ";
-		string = getString(JOptionPane.showInputDialog(""));
+		string = JOptionPane.showInputDialog("");
+		if(string==null){ accessible=true; return; }
+		string = getString(string);
 		
 		doWork();
 		

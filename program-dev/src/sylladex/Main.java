@@ -5,11 +5,17 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -797,6 +803,40 @@ public class Main implements ActionListener, WindowListener
         return string.replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
     }
 
+    public static String generateCode(String string)
+    {
+    	if(string.length()<2)
+		{
+			return string;
+		}
+		byte[] bytes = null;
+		MessageDigest d = null;
+		try
+		{
+			bytes = string.getBytes("UTF-8");
+			d = MessageDigest.getInstance("MD5");
+		}
+		catch (NoSuchAlgorithmException e){ e.printStackTrace(); }
+		catch (UnsupportedEncodingException e){ e.printStackTrace(); }
+		
+		byte[] digest = d.digest(bytes);
+		BigInteger big = new BigInteger(1,digest);
+		String code = big.toString(36);
+		Pattern p = Pattern.compile("[0-9][a-z]([a-z])");
+		Matcher m = p.matcher(code);
+		ArrayList<String> groups = new ArrayList<String>();
+		while(m.find())
+		{
+			groups.add(m.group());
+		}
+		for(String s : groups)
+		{
+			code = code.replaceAll(s, s.toUpperCase());
+		}
+		code = code.replaceAll(groups.get(1).toUpperCase(), " ");
+		code = code.substring(0, 8);
+		return code;
+    }
     // Transparency
     public static void setTransparent(JWindow window)
     {

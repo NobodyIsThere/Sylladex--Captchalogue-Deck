@@ -4,13 +4,6 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RPObject extends Widget implements MouseListener
 {
@@ -51,7 +44,7 @@ public class RPObject extends Widget implements MouseListener
 		if(img.exists())
 			setImages(img);
 		
-		generateCode();
+		code = Main.generateCode(string);
 	}
 	
 	@Override
@@ -64,41 +57,6 @@ public class RPObject extends Widget implements MouseListener
 	public String getSaveString()
 	{
 		return string + ";" + img.getPath();
-	}
-	
-	private void generateCode()
-	{
-		if(string.length()<2)
-		{
-			code = string;
-			return;
-		}
-		byte[] bytes = null;
-		MessageDigest d = null;
-		try
-		{
-			bytes = string.getBytes("UTF-8");
-			d = MessageDigest.getInstance("MD5");
-		}
-		catch (NoSuchAlgorithmException e){ e.printStackTrace(); }
-		catch (UnsupportedEncodingException e){ e.printStackTrace(); }
-		
-		byte[] digest = d.digest(bytes);
-		BigInteger big = new BigInteger(1,digest);
-		code = big.toString(36);
-		Pattern p = Pattern.compile("[0-9][a-z]([a-z])");
-		Matcher m = p.matcher(code);
-		ArrayList<String> groups = new ArrayList<String>();
-		while(m.find())
-		{
-			groups.add(m.group());
-		}
-		for(String s : groups)
-		{
-			code = code.replaceAll(s, s.toUpperCase());
-		}
-		code = code.replaceAll(groups.get(1).toUpperCase(), " ");
-		code = code.substring(0, 8);
 	}
 	
 	private class ImageFileFilter extends FileFilter
@@ -166,7 +124,7 @@ public class RPObject extends Widget implements MouseListener
 	{
 		//Ask for a name
 		string = JOptionPane.showInputDialog("Enter a name for the item.");
-		generateCode();
+		code = Main.generateCode(string);
 		//Accept an image
 		ImageFileFilter filter = new ImageFileFilter();
 		image_chooser.setFileFilter(filter);
