@@ -1,6 +1,10 @@
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -8,17 +12,28 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
@@ -29,31 +44,29 @@ public class UpdateChecker extends Widget
 	{
 		/** MSPA rss feed */
 		private static final URI RSS;
-		/** MSPA website */
-		private static final URI WEBSITE;
 		static
 			{
-				URI rss = null, website = null; //temp variables that aren't final for the try block
+				URI rss = null; //temp variable that isn't final for the try block
 				try
 					{
-						rss = new URI("http", "//www.mspaintadventures.com/rss/rss.xml", null);
-						website = new URI("http", "//www.mspaintadventures.com/", null);
+						//rss = new URI("http", "//www.mspaintadventures.com/rss/rss.xml", null);
+						rss = new URI("file", "C:\\Users\\Alexander\\Sylladex--Captchalogue-Deck\\program-dev\\rss.xml", null);
 					}
 				catch(URISyntaxException e)
 					{
 						e.printStackTrace();
 					}
 				RSS = rss;
-				WEBSITE = website;
 			}
+		public static final String FOLDER = "widgets/UpdateChecker/";
+		private static final File HELP_FILE = new File(FOLDER, "Instructions.txt");
 		/** The default interval at which to check for updates (5 minutes). */
 		private static final int DEFAULT_CHECK_INTERVAL = 300;
 		public static enum State
 			{
 				UPDATE, NO_UPDATE, NO_CONNECTION, ERROR;
-				public static final String folder = "widgets/UpdateChecker/";
-				private Icon dockIcon = Main.createImageIcon(folder + "doc_" + toString() + ".gif");
-				private ImageIcon cardIcon = Main.createImageIcon(folder + "card_" + toString() + ".gif");
+				private Icon dockIcon = Main.createImageIcon(FOLDER + "doc_" + toString() + ".gif");
+				private ImageIcon cardIcon = Main.createImageIcon(FOLDER + "card_" + toString() + ".gif");
 				public Icon getDockIcon()
 					{
 						return dockIcon;
@@ -64,77 +77,217 @@ public class UpdateChecker extends Widget
 					}
 			}
 
+		private static enum Website
+			{
+				MSPA_HOME(new JRadioButton("MSPA home page")){
+					@Override
+					protected String getAddress(UpdateChecker checker)
+						{
+							return "http://www.mspaintadventures.com/";
+						}
+				},
+				MSPA_LOAD(new JRadioButton("Load your saved game")){
+					@Override
+					protected String getAddress(UpdateChecker checker)
+						{
+							return "http://www.mspaintadventures.com/?game=load&s=6&p=1901";
+						}
+				},
+				LATEST_PAGE(new JRadioButton("Latest page")){
+					@Override
+					protected String getAddress(UpdateChecker checker)
+						{
+							StringBuffer page = new StringBuffer("" + checker.getLastReadPage());
+							while(page.length() < 6)
+								page.insert(0, "0");
+							return "http://www.mspaintadventures.com/?s=" + checker.getLastReadAdventure() + "&p=" + page;
+						}
+				};
+				//initial capacity > maximum # of entries / load factor: no rehashes
+				public static Map<ButtonModel, Website> modelMap = new HashMap<ButtonModel, UpdateChecker.Website>(Website.values().length + 1, 1);
+				static
+					{
+						for(Website website : Website.values())
+							modelMap.put(website.getButton().getModel(), website);
+					}
+				private JRadioButton button;
+				private Website(JRadioButton button)
+					{
+						this.button = button;
+					}
+				public JRadioButton getButton()
+					{
+						return button;
+					}
+				protected abstract String getAddress(UpdateChecker checker);
+				public URI getURI(UpdateChecker checker)
+					{
+						URI uri = null;
+						try
+							{
+								uri = new URI(getAddress(checker));
+							}
+						catch(URISyntaxException e)
+							{
+								e.printStackTrace();
+							}
+						return uri;
+					}
+			}
+
+		/**
+		 * A class representing something that must be saved by the widget.
+		 * @param <C> the type of input component.
+		 */
+		private static abstract class Preference<C extends Component>
+			{
+				private Box input = null;
+				/**
+				 * Creates a new <code>Preference</code> with the given name and input
+				 * component. The name and input component are used in the preferences
+				 * dialog. Each preference has a horizontally-aligned <code>Box</code>
+				 * containing both a <code>JLabel</code> with the given name as text and
+				 * the given input component.
+				 * @param name the name of the new preference. If <code>null</code>,
+				 *        doesn't add it.
+				 * @param inputComp a <code>Component</code> that allows the user to
+				 *        modify the preference. If <code>null</code>, the preference is
+				 *        not modifiable by the user.
+				 */
+				public Preference(String name, C inputComp)
+					{
+						if(inputComp == null)
+							return;
+						input = new Box(BoxLayout.X_AXIS);
+						if(name != null)
+							input.add(new JLabel(name));
+						input.add(inputComp);
+					}
+				public Preference(C inputComp)
+					{
+						this(null, inputComp);
+					}
+				public Preference()
+					{
+						this(null);
+					}
+				public Box inputBox()
+					{
+						if(input != null)
+							updateComponent();
+						return input;
+					}
+				/**
+				 * @return a <code>String</code> representing the user's current
+				 *         preference for this <code>Preference</code>.
+				 */
+				public abstract String getSaveString();
+				/** Sets up the <code>UpdateChecker</code> based on the given save string. */
+				public abstract void load(String loadString);
+
+				/**
+				 * Called before the preferences dialog is shown. Updates the input
+				 * component to match the <code>UpdateChecker</code>'s current state.
+				 * (Only necessary if the <code>Preference</code> is modifiable by the
+				 * user.)
+				 */
+				public void updateComponent()
+					{}
+				/**
+				 * Called after the preferences dialog is shown. Updates the
+				 * <code>UpdateChecker</code>'s properties based on the user's interaction
+				 * with the input component associated with the <code>Preference</code>.
+				 * (Only necessary if the <code>Preference</code> is modifiable by the
+				 * user.)
+				 */
+				public void applyChanges()
+					{}
+			}
+
 		/**
 		 * This performs the actual check, and notifies the <code>UpdateChecker</code> if
 		 * something's changed.
 		 */
 		private class Check extends TimerTask
 			{
-				// see run()
-				private boolean justRead = false;
+				// indicates that the check is just to get up-to-date; see run()
+				private boolean justGetInfo = false;
 
 				/** Icon used when a check is done. */
-				public Icon dockCheckIcon = Main.createImageIcon(State.folder + "doc_check.gif");
-				public ImageIcon cardCheckIcon = Main.createImageIcon(State.folder + "card_check.gif");
-
+				public Icon dockCheckIcon = Main.createImageIcon(FOLDER + "doc_check.gif");
+				public ImageIcon cardCheckIcon = Main.createImageIcon(FOLDER + "card_check.gif");
+				/** Time in milliseconds that the check icon takes to play. */
+				public final long CHECK_ICON_TIME = 600;
 				/*
 				 * Note: card icons are sized to fit the default card size, since they're
 				 * animations, and resizing doesn't seem to work on them.
 				 */
 
-				/** number after "s=" for the latest known page */
-				private int adventure;
-				/** number after "p=" for the latest known page */
-				private int lastPage;
-
-				public Check(int adventure, int lastPage, boolean justRead)
+				public Check(boolean justGetInfo)
 					{
-						this.adventure = adventure;
-						this.lastPage = lastPage;
-						this.justRead = justRead;
-					}
-
-				public int getAdventure()
-					{
-						return adventure;
-					}
-				public int getLastPage()
-					{
-						return lastPage;
+						this.justGetInfo = justGetInfo;
 					}
 
 				/**
 				 * The result of a check: the current state, and, if applicable, what went
 				 * wrong.
 				 */
-				private class Status
+				public class Status
 					{
-						private State state;
-						private Throwable error;
-						public Status(State state, Throwable error)
+						private int newAdventure;
+						private int newLastPage;
+						private Throwable error = null;
+						private boolean noConnection;
+						private boolean justGetInfo;
+						public Status(int newAdventure, int newLastPage, boolean justGetInfo)
 							{
-								this.state = state;
-								this.error = error;
+								this.newAdventure = newAdventure;
+								this.newLastPage = newLastPage;
+								this.justGetInfo = justGetInfo;
 							}
-						public Status(State newState)
+						public Status(Throwable error, boolean noConnection)
 							{
-								this(newState, null);
+								this.error = error;
+								this.noConnection = noConnection;
 							}
 						public Status(Throwable e)
 							{
-								this(State.ERROR, e);
+								this(e, false);
+							}
+						public boolean wasSuccessful()
+							{
+								return error == null;
+							}
+						public int getNewAdventure()
+							{
+								return newAdventure;
+							}
+						public int getNewLastPage()
+							{
+								return newLastPage;
+							}
+						public Throwable getError()
+							{
+								return error;
+							}
+						public boolean isNoConnection()
+							{
+								return noConnection;
+							}
+						public boolean justGetInfo()
+							{
+								return justGetInfo;
 							}
 					}
 
 				private Status check()
 					{
-						if(!justRead) //if justRead, not really a check
+						if(!justGetInfo) //if justGetInfo, not really a check
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
 								public void run()
 									{
-										//check icon takes 600 ms to play
-										changeIcon(dockCheckIcon, cardCheckIcon, 600);
+										changeIcon(dockCheckIcon, cardCheckIcon, CHECK_ICON_TIME);
 									}
 							});
 						try
@@ -147,32 +300,21 @@ public class UpdateChecker extends Widget
 										Scanner scanner = new Scanner(rssStream).useDelimiter("\\D+");
 										//exception used to indicate that the RSS isn't what I expected
 										Exception rssProblem = new Exception("Problem reading RSS feed");
-
 										if(scanner.findWithinHorizon("\\Q<link>http://www.mspaintadventures.com/?s=\\E", 1000) == null)
 											return new Status(rssProblem);
 										if(!scanner.hasNextInt())
 											return new Status(rssProblem);
-										int latestAdventure = scanner.nextInt();
-										boolean update = false;
-										if(latestAdventure > adventure) //new adventure!
-											{
-												adventure = latestAdventure;
-												update = true;
-											}
-										int latestPage = scanner.nextInt();
-										if(latestPage > lastPage) //update!
-											{
-												lastPage = latestPage;
-												update = true;
-											}
-										return new Status(update ? State.UPDATE : State.NO_UPDATE);
+										int newAdventure = scanner.nextInt();
+										if(!scanner.hasNextInt())
+											return new Status(rssProblem);
+										return new Status(newAdventure, scanner.nextInt(), justGetInfo);
 									}
 								//I think this indicates there isn't an internet connection?
 								//I found it from a Google search
 								//It works for me, at least
 								catch(UnknownHostException e)
 									{
-										return new Status(State.NO_CONNECTION, e);
+										return new Status(e, true);
 									}
 								catch(MalformedURLException e)
 									{
@@ -195,51 +337,47 @@ public class UpdateChecker extends Widget
 					{
 						System.out.println("UpdateChecker: Check run");
 						final Status status = check(); //check for update
-						/*
-						 * If there's an update, I want to cancel the TimerTask. I don't
-						 * need to check for another update until they've looked at this
-						 * one. TODO: Perhaps I should add a time limit on this, if they
-						 * check independent of the widget. Also, it would be nice to be
-						 * able to just set the update as read without opening the
-						 * browser, for the same reason.
-						 * When the user goes to MSPA after an update is detected, I want
-						 * to resume checking for further updates. However, it is possible
-						 * that there's been an update between when the update was
-						 * detected and when the user went to the site. So if I just start
-						 * checking again, I could detect an update that the user has
-						 * already seen. So when a new Check is created after the user
-						 * goes to read an update, I want to use the first check to just
-						 * get the Check up to date and not to actually sound an alert.
-						 */
-						if(status.state == State.UPDATE)
-							if(justRead)
-								{
-									justRead = false;
-									return;
-								}
-							else
-								cancel();
+						justGetInfo = false; //only first time
 						SwingUtilities.invokeLater(new Runnable(){
 							@Override
-							public void run() //update UpdateChecker
+							public void run()
 								{
-									setState(status.state);
-									setError(status.error);
+									reactToCheck(status);
 								}
 						});
 					}
 			}
 
 		// timer thread is daemon: want to run as long as the sylladex is open but no longer
-		private Timer timer = new Timer(true);
+		private static Timer timer = new Timer(true);
+		/** exception for if the load doesn't work */
+		private static Exception badLoad = new Exception("Error reading saved data.");
+
 		/**
 		 * Icon can't be changed yet, because the check icon is in the process of running.
 		 */
 		private boolean iconBlocked = false;
 		/** JPanel holding the icon for the card. */
 		private JLabel card_icon = new JLabel();
+		/**
+		 * An <code>Action</code> representing opening the <code>UpdateChecker</code>,
+		 * without removing it from the sylladex.
+		 */
+		private Action open = new AbstractAction("Open"){
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e)
+				{
+					m.openWithoutRemoval(card);
+				}
+		};
+		/** Whether or not the dock will be shown when an update occurs. */
+		private boolean showDock = true;
+		/** List of preferences */
+		private List<Preference<?>> preferences = new ArrayList<Preference<?>>();
+		private Website website = Website.MSPA_HOME;
 
-		//below variables should all be set in load()/prepare()
+		//below variables should all be set in prepare()/load()/add()
 		/** number of seconds between checks. */
 		private int checkInterval;
 		/** current state of the <code>UpdateChecker</code> */
@@ -247,8 +385,346 @@ public class UpdateChecker extends Widget
 		/** If an exception occurs, goes into ERROR state and stores the exception here */
 		private Throwable error;
 		/** the most recent Check to check the site */
-		private Check check;
+		private Check check = new Check(true);
+		/** A popup menu used to access options for the <code>UpdateChecker</code>. */
+		private JPopupMenu popupMenu;
+		//adventure, lastPage: most recent adventure & page that the UpdateChecker knows about
+		//lastReadX: most recent adventure & page that the user has read
+		private int adventure, lastPage, lastReadAdventure, lastReadPage;
 
+		private int getAdventure()
+			{
+				return adventure;
+			}
+		private int getLastPage()
+			{
+				return lastPage;
+			}
+		private int getLastReadAdventure()
+			{
+				return lastReadAdventure;
+			}
+		private int getLastReadPage()
+			{
+				return lastReadPage;
+			}
+		private void setAdventure(int adventure)
+			{
+				this.adventure = adventure;
+			}
+		private void setLastPage(int lastPage)
+			{
+				this.lastPage = lastPage;
+			}
+		private void setLastReadAdventure(int lastReadAdventure)
+			{
+				this.lastReadAdventure = lastReadAdventure;
+			}
+		private void setLastReadPage(int lastReadPage)
+			{
+				this.lastReadPage = lastReadPage;
+			}
+
+		/** Initialization; called by both prepare() and load(). */
+		@Override
+		public void prepare()
+			{
+				panel.setOpaque(false);
+				panel.add(card_icon);
+
+				//set up popup menu
+				popupMenu = new JPopupMenu();
+				popupMenu.add(new JMenuItem(open));
+				JMenuItem remove = new JMenuItem("Open and Remove");
+				remove.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e)
+						{
+							m.getModus().open(card);
+							check.cancel();
+						}
+				});
+				popupMenu.add(remove);
+				JMenuItem checkNow = new JMenuItem("Check for Updates Now");
+				checkNow.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e)
+						{
+							timer.schedule(new Check(false), 0);
+						}
+				});
+				popupMenu.add(checkNow);
+				JMenuItem markAsRead = new JMenuItem("Mark as Read");
+				markAsRead.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e)
+						{
+							scheduleCheck(true);
+						}
+				});
+				popupMenu.add(markAsRead);
+				JMenuItem preferencesItem = new JMenuItem("Preferences");
+				preferencesItem.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e)
+						{
+							preferencesDialog();
+						}
+				});
+				popupMenu.add(preferencesItem);
+				JMenuItem help = new JMenuItem("Help");
+				help.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e)
+						{
+							if(Desktop.isDesktopSupported())
+								{
+									try
+										{
+											Desktop.getDesktop().open(HELP_FILE);
+										}
+									catch(IOException ex)
+										{
+											ex.printStackTrace();
+										}
+								}
+							else
+								{
+									JOptionPane.showMessageDialog(null, "See Instructions.txt in the widgets/UpdateChecker folder.", "Help", JOptionPane.PLAIN_MESSAGE);
+								}
+						}
+				});
+				popupMenu.add(help);
+
+				//set up preferences
+
+				/*
+				 * Check Interval:
+				 * min: 0 (each check comes immediately after the last)
+				 * max: 2^31-1 (don't want to overflow)
+				 * step: 1 second (don't think you really need to be more precise)
+				 */
+				final SpinnerNumberModel intervalSpinner = new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1);
+				preferences.add(new Preference<JSpinner>("Check Interval (seconds): ", new JSpinner(intervalSpinner)){
+					@Override
+					public void load(String loadString)
+						{
+							try
+								{
+									checkInterval = Integer.parseInt(loadString);
+								}
+							catch(NumberFormatException e)
+								{
+									error(badLoad);
+								}
+						}
+					@Override
+					public String getSaveString()
+						{
+							return "" + checkInterval;
+						}
+					@Override
+					public void updateComponent()
+						{
+							intervalSpinner.setValue(checkInterval);
+						}
+					@Override
+					public void applyChanges()
+						{
+							setCheckInterval(intervalSpinner.getNumber().intValue());
+						}
+				});
+
+				//show dock when update?
+				final JCheckBox showDockCheckBox = new JCheckBox("Show Dock when Update Detected");
+				preferences.add(new Preference<JCheckBox>(showDockCheckBox){
+					@Override
+					public String getSaveString()
+						{
+							return "" + showDock;
+						}
+					@Override
+					public void load(String loadString)
+						{
+							showDock = Boolean.parseBoolean(loadString);
+						}
+					@Override
+					public void updateComponent()
+						{
+							showDockCheckBox.setSelected(showDock);
+						}
+					@Override
+					public void applyChanges()
+						{
+							showDock = showDockCheckBox.isSelected();
+						}
+				});
+
+				//website to go to
+				final ButtonGroup websiteGroup = new ButtonGroup();
+				Box websiteContainer = new Box(BoxLayout.Y_AXIS);
+				websiteContainer.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				for(Website option : Website.values())
+					{
+						websiteGroup.add(option.getButton());
+						websiteContainer.add(option.getButton());
+					}
+				preferences.add(new Preference<Component>("Browser Destination: ", websiteContainer){
+					@Override
+					public String getSaveString()
+						{
+							return website.toString();
+						}
+					@Override
+					public void load(String loadString)
+						{
+							try
+								{
+									website = Website.valueOf(loadString);
+								}
+							catch(IllegalArgumentException e)
+								{
+									e.printStackTrace();
+								}
+						}
+					@Override
+					public void updateComponent()
+						{
+							websiteGroup.setSelected(website.getButton().getModel(), true);
+						}
+					@Override
+					public void applyChanges()
+						{
+							website = Website.modelMap.get(websiteGroup.getSelection());
+						}
+				});
+
+				//current adventure
+				preferences.add(new Preference<Component>(){
+					@Override
+					public String getSaveString()
+						{
+							return "" + getAdventure();
+						}
+					@Override
+					public void load(String loadString)
+						{
+							try
+								{
+									setAdventure(Integer.parseInt(loadString));
+								}
+							catch(NumberFormatException e)
+								{
+									error(badLoad);
+								}
+						}
+				});
+
+				//latest page
+				preferences.add(new Preference<Component>(){
+					@Override
+					public String getSaveString()
+						{
+							return "" + getLastPage();
+						}
+					@Override
+					public void load(String loadString)
+						{
+							try
+								{
+									setLastPage(Integer.parseInt(loadString));
+								}
+							catch(NumberFormatException e)
+								{
+									error(badLoad);
+								}
+
+						}
+				});
+
+				//last read adventure
+				preferences.add(new Preference<Component>(){
+					@Override
+					public String getSaveString()
+						{
+							return "" + getLastReadAdventure();
+						}
+					@Override
+					public void load(String loadString)
+						{
+							try
+								{
+									setLastReadAdventure(Integer.parseInt(loadString));
+								}
+							catch(NumberFormatException e)
+								{
+									error(badLoad);
+								}
+						}
+				});
+
+				//last read page
+				preferences.add(new Preference<Component>(){
+					@Override
+					public String getSaveString()
+						{
+							return "" + getLastReadPage();
+						}
+					@Override
+					public void load(String loadString)
+						{
+							try
+								{
+									setLastReadPage(Integer.parseInt(loadString));
+								}
+							catch(NumberFormatException e)
+								{
+									error(badLoad);
+								}
+						}
+				});
+
+				//in update state? (this one must be after adventure and last page)
+				preferences.add(new Preference<Component>(){
+					@Override
+					public void load(String loadString)
+						{
+							if("u".equals(loadString))
+								setState(State.UPDATE); //don't need to check if I already know there's an unread update
+							else
+								{
+									setState(State.NO_UPDATE);
+									scheduleCheck(false);
+								}
+						}
+					@Override
+					public String getSaveString()
+						{
+							return state == State.UPDATE ? "u" : "n";
+						}
+				});
+			}
+		@Override
+		public void add()
+			{
+				checkInterval = DEFAULT_CHECK_INTERVAL;
+				setState(State.NO_UPDATE);
+				scheduleCheck(true); //use first check to get up-to-date
+			}
+		@Override
+		public void load(String string)
+			{
+				String[] vars = string.split(";");
+				if(vars.length != preferences.size())
+					{
+						error(badLoad);
+						return;
+					}
+				for(int i = 0; i < preferences.size(); i++)
+					{
+						preferences.get(i).load(vars[i]);
+					}
+			}
 		/**
 		 * Sets the dock icon to <code>dockIcon</code>. Waits <code>animTimeMillis</code>
 		 * milliseconds, blocking the icon from being changed again, then updates the icon
@@ -299,6 +775,8 @@ public class UpdateChecker extends Widget
 				this.state = state;
 				updateIcon();
 				System.out.println("UpdateChecker: state = " + state.toString());
+				if(state == State.UPDATE && showDock)
+					m.refreshDock(); //show dock; showDock() doesn't seem to keep it visible (if auto-hide is on)
 			}
 		public void setError(Throwable e)
 			{
@@ -312,100 +790,95 @@ public class UpdateChecker extends Widget
 		/** Sets the check interval and reschedules the check. */
 		public void setCheckInterval(int interval)
 			{
-				checkInterval = interval;
-				check.cancel();
-				scheduleCheck(check.getAdventure(), check.getLastPage(), false);
+				if(interval != checkInterval)
+					{
+						checkInterval = interval;
+						scheduleCheck(false);
+					}
 			}
 
 		/**
-		 * Schedules a check based on the parameters and sets it to <code>check</code>.
+		 * Cancels the current <code>Check</code>, schedules a new one based on the
+		 * parameters, and sets the new one to <code>check</code>.
 		 * @param adventure the number of the current adventure
 		 * @param lastPage the number of the last page read
-		 * @param justRead if <code>true</code>, uses the first check just to get
+		 * @param justGetInfo if <code>true</code>, uses the first check just to get
 		 *        up-to-date (see {@link Check#run()})
 		 */
-		private void scheduleCheck(int adventure, int lastPage, boolean justRead)
+		private void scheduleCheck(boolean justGetInfo)
 			{
-				check = new Check(adventure, lastPage, justRead);
+				if(check != null)
+					check.cancel();
+				check = new Check(justGetInfo);
 				timer.schedule(check, 0, TimeUnit.SECONDS.toMillis(checkInterval));
 			}
 
-		/** Initialization; called by both prepare() and load(). */
-		private void init()
+		private void reactToCheck(Check.Status status)
 			{
-				panel.setOpaque(false);
-				panel.add(card_icon);
-			}
-
-		@Override
-		public void prepare()
-			{
-				checkInterval = DEFAULT_CHECK_INTERVAL;
-				setState(State.NO_UPDATE);
-				scheduleCheck(0, 0, true); //use first check to get up-to-date
-				init();
-			}
-		@Override
-		public void load(String string)
-			{
-				String[] vars = string.split(";");
-				//exception for if the load doesn't work
-				Exception badLoad = new Exception("Error reading saved data.");
-				if(vars.length != 4)
+				State newState;
+				if(status.wasSuccessful())
 					{
-						error(badLoad);
-						return;
-					}
-				int adventure, lastPage;
-				try
-					{
-						checkInterval = Integer.parseInt(vars[1]);
-						adventure = Integer.parseInt(vars[2]);
-						lastPage = Integer.parseInt(vars[3]);
-					}
-				catch(NumberFormatException e)
-					{
-						error(badLoad);
-						return;
-					}
-				if("u".equals(vars[0]))
-					{
-						setState(State.UPDATE); //don't need to check if I already know there's an unread update
-						//make a Check but don't run it; just to keep track of adventure/last page
-						check = new Check(adventure, lastPage, true);
+						boolean update = false;
+						if(status.getNewAdventure() > adventure) //new adventure!
+							{
+								setAdventure(status.getNewAdventure());
+								update = true;
+							}
+						if(status.getNewLastPage() > lastPage) //update!
+							{
+								setLastPage(status.getNewLastPage());
+								update = true;
+							}
+						newState = update ? State.UPDATE : State.NO_UPDATE;
+						/*
+						 * If there's an update, I want to cancel the TimerTask. I don't
+						 * need to check for another update until they've looked at this
+						 * one.
+						 * TODO: Perhaps I should add a time limit on this, if they
+						 * check independent of the widget. Also, it would be nice to be
+						 * able to just set the update as read without opening the
+						 * browser, for the same reason.
+						 * When the user goes to MSPA after an update is detected, I want
+						 * to resume checking for further updates. However, it is possible
+						 * that there's been an update between when the update was
+						 * detected and when the user went to the site. So if I just start
+						 * checking again, I could detect an update that the user has
+						 * already seen. So when a new Check is created after the user
+						 * goes to read an update, I want to use the first check to just
+						 * get the Check up to date and not to actually sound an alert.
+						 */
+						if(status.justGetInfo())
+							{
+								setLastReadAdventure(getAdventure());
+								setLastReadPage(getLastPage());
+								newState = State.NO_UPDATE;
+							}
+						else if(newState == State.UPDATE)
+							check.cancel();
 					}
 				else
 					{
-						setState(State.NO_UPDATE);
-						scheduleCheck(adventure, lastPage, false);
+						newState = status.isNoConnection() ? State.NO_CONNECTION : State.ERROR;
+						setError(status.getError());
 					}
-				init();
+				setState(newState);
 			}
 
 		/**
 		 * Open a dialog allow user to set preferences. Current preferences: <list>
 		 * <item>Check interval: time between successive checks.</item> </list>
 		 */
-		//TODO: atm, only opens if NO_UPDATE. would be nice to be able to open whenever.
 		private void preferencesDialog()
 			{
 				//components to update each preference
-				List<Component> preferences = new ArrayList<Component>();
-				//component for interval; holds label & spinner
-				Box interval = new Box(BoxLayout.X_AXIS);
-				preferences.add(interval);
-				/*
-				 * min: 0 (each check comes immediately after the last)
-				 * max: 2^31-1 (don't want to overflow)
-				 * step: 1 second (don't think you really need to be more precise)
-				 */
-				SpinnerNumberModel intervalSpinner = new SpinnerNumberModel(checkInterval, 0, Integer.MAX_VALUE, 1);
-				interval.add(new JLabel("Check Interval (seconds):"));
-				interval.add(new JSpinner(intervalSpinner));
-				JOptionPane.showMessageDialog(null, preferences.toArray(), "Set Update Checker Preferences", JOptionPane.PLAIN_MESSAGE);
-				setCheckInterval(intervalSpinner.getNumber().intValue());
+				List<Component> preferenceComponents = new ArrayList<Component>();
+				for(Preference<?> preference : preferences)
+					if(preference.inputBox() != null)
+						preferenceComponents.add(preference.inputBox());
+				if(JOptionPane.showConfirmDialog(null, preferenceComponents.toArray(), "Set Update Checker Preferences", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION)
+					for(Preference<?> preference : preferences)
+						preference.applyChanges();
 			}
-
 		/**
 		 * If the state is UPDATE opens MSPA in the default browser. If the state is
 		 * NO_UPDATE, opens the preferences dialog. If the state, is NO_CONNECTION or
@@ -416,9 +889,9 @@ public class UpdateChecker extends Widget
 			{
 				switch(state)
 					{
-						case UPDATE: {
-							setState(State.NO_UPDATE);
-							scheduleCheck(check.getAdventure(), check.getLastPage(), true);
+						case UPDATE:
+							scheduleCheck(true);
+						case NO_UPDATE: {
 							if(Desktop.isDesktopSupported())
 								{
 									Desktop desktop = Desktop.getDesktop();
@@ -426,7 +899,7 @@ public class UpdateChecker extends Widget
 										try
 											{
 												//User: Open browser and go to mspaintadventures.com
-												desktop.browse(WEBSITE);
+												desktop.browse(website.getURI(this));
 												return;
 											}
 										catch(IOException e)
@@ -438,16 +911,12 @@ public class UpdateChecker extends Widget
 							JOptionPane.showMessageDialog(null, "Unable to open browser.", "Browse Not Supported", JOptionPane.ERROR_MESSAGE);
 						}
 						break;
-						case NO_UPDATE:
-							preferencesDialog();
-						break;
 						case NO_CONNECTION:
 						case ERROR:
 							error.printStackTrace();
 						break;
 					}
 			}
-
 		@Override
 		public String getString()
 			{
@@ -456,19 +925,42 @@ public class UpdateChecker extends Widget
 		@Override
 		public String getSaveString()
 			{
-				return (state == State.UPDATE ? 'u' : 'n') + ";" + checkInterval + ";" + check.getAdventure() + ";" + check.getLastPage();
+				StringBuffer saveString = new StringBuffer();
+				for(Preference<?> preference : preferences)
+					saveString.append(preference.getSaveString() + ";");
+				return saveString.toString();
 			}
-		
+		/**
+		 * Shows the popup menu if e is the popup trigger.
+		 * @return whether or not the popup menu is shown.
+		 */
+		private boolean popup(MouseEvent e)
+			{
+				boolean popupShown = e.isPopupTrigger();
+				if(popupShown)
+					popupMenu.show(e.getComponent(), e.getX(), e.getY());
+				return popupShown;
+			}
 		@Override
-		public void mouseClicked(MouseEvent arg0){}
+		public void mouseClicked(MouseEvent e)
+			{}
 		@Override
-		public void mouseEntered(MouseEvent arg0){}
+		public void mouseEntered(MouseEvent e)
+			{}
 		@Override
-		public void mouseExited(MouseEvent arg0){}
+		public void mouseExited(MouseEvent e)
+			{}
 		@Override
-		public void mousePressed(MouseEvent arg0){}
+		public void mousePressed(MouseEvent e)
+			{
+				popup(e);
+			}
 		@Override
-		public void mouseReleased(MouseEvent arg0){}
-		@Override
-		public void add(){}
+		public void mouseReleased(MouseEvent e)
+			{
+				if(!popup(e))
+					{
+						open.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "open", e.getWhen(), e.getModifiers()));
+					}
+			}
 	}
