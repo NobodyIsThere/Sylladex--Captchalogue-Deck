@@ -49,8 +49,7 @@ public class UpdateChecker extends Widget
 				URI rss = null; //temp variable that isn't final for the try block
 				try
 					{
-						//rss = new URI("http", "//www.mspaintadventures.com/rss/rss.xml", null);
-						rss = new URI("file", "C:\\Users\\Alexander\\Sylladex--Captchalogue-Deck\\program-dev\\rss.xml", null);
+						rss = new URI("http", "//www.mspaintadventures.com/rss/rss.xml", null);
 					}
 				catch(URISyntaxException e)
 					{
