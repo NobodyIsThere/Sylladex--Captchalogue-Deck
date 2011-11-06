@@ -26,6 +26,9 @@ public class Main implements ActionListener, WindowListener
 {
     //Should be called "Sylladex", but has to be called "Main".
     //Controls everything.
+	
+	/** Prefixes for save strings, to indicate the type of data that is stored. */
+	public static final String FILE_PREFIX = "[FILE]", STRING_PREFIX = "[STRING]", IMAGE_PREFIX = "[IMAGE]", WIDGET_PREFIX = "[WIDGET]";
 
     private static final long serialVersionUID = 1L;
 
@@ -771,6 +774,60 @@ public class Main implements ActionListener, WindowListener
     }
 
     public Object getItem(String string)
+    	{
+    		if(string.startsWith(FILE_PREFIX))
+    			{
+    				string = string.substring(FILE_PREFIX.length());
+    				string = string.replaceAll("http://", "");
+    		        String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
+    		        string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
+    		        string = string.replaceAll("/", p + System.getProperty("file.separator"));
+
+    		        File file = new File(string);
+    		        if(file.exists())
+    		            return file;
+    		        //file doesn't exist: interpret as string
+    		        string = STRING_PREFIX + string;
+    			}
+    		if(string.startsWith(IMAGE_PREFIX))
+    			{
+    				string = string.substring(IMAGE_PREFIX.length());
+    				string = string.replaceAll("http://", "");
+			        String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
+			        string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
+			        string = string.replaceAll("/", p + System.getProperty("file.separator"));
+
+			        File file = new File(string);
+			        if(file.exists())
+			        {
+		                try
+		                {
+		                    Image image = ImageIO.read(file);
+		                    file.delete();
+		                    return image;
+		                }
+		                catch (IOException e){ return file.getPath(); }
+			        }
+			        //file doesn't exist: interpret as string
+			        string = STRING_PREFIX + string;
+    			}
+    		if(string.startsWith(STRING_PREFIX))
+    			return string.substring(STRING_PREFIX.length()).replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
+    		if(string.startsWith(WIDGET_PREFIX))
+    			{
+    	        	String cut = string.substring(WIDGET_PREFIX.length());
+    	        	String path = cut.substring(0, cut.indexOf("[")-1);
+    	        	Widget widget = loadWidget(new File(path));
+    	        	widget.load(cut.substring(cut.indexOf("]")+1));
+    	        	return widget;
+    			}
+    		//no prefix: old save file
+    		return oldGetItem(string);
+    	}
+    
+    /** @deprecated use {@link #getItem(String)}. */
+    @Deprecated
+    public Object oldGetItem(String string)
     {
         string = string.replaceAll("http://", "");
         String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
@@ -791,14 +848,6 @@ public class Main implements ActionListener, WindowListener
                 catch (IOException e){ return file.getPath(); }
             }
             return file;
-        }
-        else if(string.startsWith("[WIDGET]"))
-        {
-        	String cut = string.replaceAll("\\[WIDGET\\]", "");
-        	String path = cut.substring(0, cut.indexOf("[")-1);
-        	Widget widget = loadWidget(new File(path));
-        	widget.load(cut.substring(cut.indexOf("]")+1));
-        	return widget;
         }
         return string.replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
     }

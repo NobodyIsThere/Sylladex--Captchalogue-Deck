@@ -118,31 +118,36 @@ public class SylladexCard implements MouseInputListener
 	{
 		if(file!=null)
 		{
+			String path;
 			if(!deck.getPreferences().usb_mode())
-				return file.getPath();
-			return "files" + System.getProperty("file.separator") + file.getName();
+				path = file.getPath();
+			else
+				path = "files" + System.getProperty("file.separator") + file.getName();
+			return Main.FILE_PREFIX + path;
 		}
 		else if(string!=null)
 		{
-			return string.replaceAll(System.getProperty("line.separator"), "SYLLADEX_NL");
+			return Main.STRING_PREFIX + string.replaceAll(System.getProperty("line.separator"), "SYLLADEX_NL");
 		}
 		else if(image!=null)
 		{
 			if(image instanceof BufferedImage)
 			{
-				File f = new File("files" + System.getProperty("file.separator") + "captchalogued_image_" + new Double(Math.random()).toString().replaceAll("\\.", "") + ".png");
+				File f = null;
+				while(f == null ? true : f.exists()) //don't want to overwrite a previous image
+					f = new File("files" + System.getProperty("file.separator") + "captchalogued_image_" + new Double(Math.random()).toString().replaceAll("\\.", "") + ".png");
 				BufferedImage b = (BufferedImage)image;
 				try
 				{
 					ImageIO.write(b, "png", f);
 				}
 				catch (IOException e){ e.printStackTrace(); }
-				return f.getPath().substring(f.getPath().indexOf("files" + System.getProperty("file.separator") + "captchalogued_image_"));
+				return Main.IMAGE_PREFIX + f.getPath().substring(f.getPath().indexOf("files" + System.getProperty("file.separator") + "captchalogued_image_"));
 			}
 		}
 		else if(widget!=null)
 		{
-			return "[WIDGET]widgets/" + widget.getClass().getName() + ".class[/WIDGET]" + widget.getSaveString();
+			return Main.WIDGET_PREFIX + "widgets/" + widget.getClass().getName() + ".class[/WIDGET]" + widget.getSaveString();
 		}
 		return null;
 	}
