@@ -270,7 +270,7 @@ public class TreeModus extends FetchModus
 				else
 				{ return 1 + right.numLeftChildren() + right.numRightChildren(); }
 			}
-			
+
 			public int leftWidth()
 			{
 				if(left!=null)
@@ -395,7 +395,14 @@ public class TreeModus extends FetchModus
 				return anims;
 			}
 		}
-
+		
+		public int getHeight()
+		{
+			if(treeroot.numLeftChildren()>treeroot.numRightChildren())
+			{ return treeroot.numLeftChildren() + 1; }
+			else
+			{ return treeroot.numRightChildren() + 1; }
+		}
 		
 		private ArrayList<Node> visited = new ArrayList<Node>();
 		
@@ -581,7 +588,7 @@ public class TreeModus extends FetchModus
 				card.setLayer(node.getY()+node.getX());
 		}
 		if(tree!=null)
-		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + card_width*2,500); }
+		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + card_width*2, tree.getHeight()*card_height + card_height); }
 		m.refreshCardHolder();
 	}
 	
