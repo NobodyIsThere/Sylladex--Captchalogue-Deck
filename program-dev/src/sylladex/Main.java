@@ -110,6 +110,8 @@ public class Main implements ActionListener, WindowListener
         	};
         	Runtime.getRuntime().addShutdownHook(new Thread(exithook,"Contents save hook (OSX)"));
         }
+        
+        if(prefs.autohide_cards()){ cardholder.setVisible(false); }
     }
 
     protected void changeModus(FetchModus m)
@@ -267,9 +269,10 @@ public class Main implements ActionListener, WindowListener
         dock.setIconImage(createImageIcon(modus.image_card).getImage());
         deckwidth = screensize.width;
         dock.setSize(new Dimension(deckwidth,100));
-        if(prefs.top()==true)
+        hideDock();
+        if(prefs.top() && !prefs.autohide_dock())
         { dock.setLocation(new Point(0,prefs.offset())); }
-        else
+        else if(!prefs.autohide_dock())
         { dock.setLocation(new Point(0,screensize.height-100-prefs.offset())); }
 
         pane.removeAll();
