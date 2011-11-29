@@ -1,13 +1,15 @@
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.*;
 import sylladex.*;
 import sylladex.Animation.AnimationType;
 
 
-public class EncryptionModus extends FetchModus
+public class EncryptionModus extends FetchModus implements KeyListener
 {
 	private boolean enabled = true;
 	private boolean openenabled = true;
@@ -15,7 +17,7 @@ public class EncryptionModus extends FetchModus
 	private JWindow window;
 	private JLayeredPane pane;
 	
-	private JWindow hacking = new JWindow();
+	private JFrame hacking = new JFrame();
 	private Timer timer = new Timer(1500, this);
 	private JLabel pbar;
 	private int progress;
@@ -125,11 +127,11 @@ public class EncryptionModus extends FetchModus
 		
 		progress = 0;
 
-		hacking = new JWindow();
+		hacking = new JFrame();
 		hacking.setBounds(0, 0, 296, 376);
 		hacking.setLocationRelativeTo(null);
 		hacking.setLayout(null);
-		Main.setTransparent(hacking);
+		//Main.setTransparent(hacking);
 		
 		JLayeredPane panel = new JLayeredPane();
 		panel.setBounds(0,0,296,376);
@@ -150,9 +152,14 @@ public class EncryptionModus extends FetchModus
 		hacking.setVisible(true);
 		
 		hackcard = card;
-		timer = new Timer(1500, this);
+		timer = new Timer(100, this);
 		timer.setActionCommand("progress");
 		timer.restart();
+		
+		animation.setFocusable(true);
+		animation.requestFocusInWindow();
+		animation.addKeyListener(this);
+		animation.setFocusTraversalKeysEnabled(false);
 	}
 	
 	private void actuallyOpen(SylladexCard card)
@@ -239,7 +246,8 @@ public class EncryptionModus extends FetchModus
 		}
 		else if(e.getActionCommand().equals("progress"))
 		{
-			progress+=Math.random()*5;
+			progress-=Math.random()*4;
+			if(progress<0){ progress = 0; }
 			if(progress>100){ progress = 100; }
 			int x = 230*progress/100;
 			pbar.setBounds(276-x,262,x,10);
@@ -255,5 +263,17 @@ public class EncryptionModus extends FetchModus
 			}
 		}
 	}
+
+	@Override
+	public void keyPressed(KeyEvent e){}
+
+	@Override
+	public void keyReleased(KeyEvent e)
+	{
+		progress+=Math.random()*5;
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e){}
 	
 }
