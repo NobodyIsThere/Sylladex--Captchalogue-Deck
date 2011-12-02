@@ -1,9 +1,9 @@
 top:true
-autohide_dock:true
+autohide_dock:false
 always_on_top_dock:true
 usb_mode:false
 offset:0
 autohide_cards:false
 always_on_top_cards:true
 copy:false
-fetchmodus:TreeModus
+fetchmodus:StackModus
