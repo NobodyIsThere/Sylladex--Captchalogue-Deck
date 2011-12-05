@@ -5,17 +5,11 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -26,9 +20,9 @@ public class Main implements ActionListener, WindowListener
 {
     //Should be called "Sylladex", but has to be called "Main".
     //Controls everything.
-	
-	/** Prefixes for save strings, to indicate the type of data that is stored. */
-	public static final String FILE_PREFIX = "[FILE]", STRING_PREFIX = "[STRING]", IMAGE_PREFIX = "[IMAGE]", WIDGET_PREFIX = "[WIDGET]";
+
+/** Prefixes for save strings, to indicate the type of data that is stored. */
+public static final String FILE_PREFIX = "[FILE]", STRING_PREFIX = "[STRING]", IMAGE_PREFIX = "[IMAGE]", WIDGET_PREFIX = "[WIDGET]";
 
     private static final long serialVersionUID = 1L;
 
@@ -74,11 +68,11 @@ public class Main implements ActionListener, WindowListener
         }
         //catch (java.text.ParseException e)
         //{
-        //  e.printStackTrace();
+        // e.printStackTrace();
         //}
         //catch (UnsupportedLookAndFeelException e)
         //{
-        //  e.printStackTrace();
+        // e.printStackTrace();
         //}
         catch (FileNotFoundException e)
         {
@@ -101,14 +95,14 @@ public class Main implements ActionListener, WindowListener
         //Make sure contents are saved on Mac Cmd+Q
         if(isMac())
         {
-        	Runnable exithook = new Runnable()
-        	{
-        		public void run()
-        		{
-        			prefs.cleanUp();
-        		}
-        	};
-        	Runtime.getRuntime().addShutdownHook(new Thread(exithook,"Contents save hook (OSX)"));
+         Runnable exithook = new Runnable()
+         {
+         public void run()
+         {
+         prefs.cleanUp();
+         }
+         };
+         Runtime.getRuntime().addShutdownHook(new Thread(exithook,"Contents save hook (OSX)"));
         }
         
         if(prefs.autohide_cards()){ cardholder.setVisible(false); }
@@ -183,14 +177,14 @@ public class Main implements ActionListener, WindowListener
                     java.util.List<File> fileList = (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : fileList)
                     {
-                    	if(file.getName().endsWith(".class") || file.getName().endsWith(".sdw"))
-                    	{
-                    		Widget widget = loadWidget(file);
-                    		addItem(widget);
-                    	}
-                    	else
+                     if(file.getName().endsWith(".class") || file.getName().endsWith(".sdw"))
+                     {
+                     Widget widget = loadWidget(file);
+                     addItem(widget);
+                     }
+                     else
                         {
-                    		addItem(file);
+                     addItem(file);
                         }
                     }
                 }
@@ -506,20 +500,20 @@ public class Main implements ActionListener, WindowListener
 
     private Widget loadWidget(File file)
     {
-    	try
-    	{
-    		URL[] url = { new File("widgets/").toURI().toURL() };
-    		ClassLoader cl = new URLClassLoader(url);
-    		String name = file.getName().replaceAll("\\.class?", "");
-    		name = name.replaceAll("\\.sdw?", "");
-    		Class<?> wclass = cl.loadClass(name);
-    		Widget widget = (Widget) wclass.newInstance();
-    		widget.setMain(this);
-    		widget.prepare();
-    		return widget;
-    	}
-    	catch (Exception e) {e.printStackTrace();}
-    	return null;
+     try
+     {
+     URL[] url = { new File("widgets/").toURI().toURL() };
+     ClassLoader cl = new URLClassLoader(url);
+     String name = file.getName().replaceAll("\\.class?", "");
+     name = name.replaceAll("\\.sdw?", "");
+     Class<?> wclass = cl.loadClass(name);
+     Widget widget = (Widget) wclass.newInstance();
+     widget.setMain(this);
+     widget.prepare();
+     return widget;
+     }
+     catch (Exception e) {e.printStackTrace();}
+     return null;
     }
     
     public void addItem(String string)
@@ -566,7 +560,7 @@ public class Main implements ActionListener, WindowListener
 
     public void addItem(Widget widget)
     {
-    	widget.add();
+     widget.add();
         modus.addItem(widget);
     }
 
@@ -777,56 +771,56 @@ public class Main implements ActionListener, WindowListener
     }
 
     public Object getItem(String string)
-    	{
-    		if(string.startsWith(FILE_PREFIX))
-    			{
-    				string = string.substring(FILE_PREFIX.length());
-    				string = string.replaceAll("http://", "");
-    		        String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
-    		        string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
-    		        string = string.replaceAll("/", p + System.getProperty("file.separator"));
+     {
+     if(string.startsWith(FILE_PREFIX))
+     {
+     string = string.substring(FILE_PREFIX.length());
+     string = string.replaceAll("http://", "");
+     String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
+     string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
+     string = string.replaceAll("/", p + System.getProperty("file.separator"));
 
-    		        File file = new File(string);
-    		        if(file.exists())
-    		            return file;
-    		        //file doesn't exist: interpret as string
-    		        string = STRING_PREFIX + string;
-    			}
-    		if(string.startsWith(IMAGE_PREFIX))
-    			{
-    				string = string.substring(IMAGE_PREFIX.length());
-    				string = string.replaceAll("http://", "");
-			        String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
-			        string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
-			        string = string.replaceAll("/", p + System.getProperty("file.separator"));
+     File file = new File(string);
+     if(file.exists())
+     return file;
+     //file doesn't exist: interpret as string
+     string = STRING_PREFIX + string;
+     }
+     if(string.startsWith(IMAGE_PREFIX))
+     {
+     string = string.substring(IMAGE_PREFIX.length());
+     string = string.replaceAll("http://", "");
+String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
+string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
+string = string.replaceAll("/", p + System.getProperty("file.separator"));
 
-			        File file = new File(string);
-			        if(file.exists())
-			        {
-		                try
-		                {
-		                    Image image = ImageIO.read(file);
-		                    file.delete();
-		                    return image;
-		                }
-		                catch (IOException e){ return file.getPath(); }
-			        }
-			        //file doesn't exist: interpret as string
-			        string = STRING_PREFIX + string;
-    			}
-    		if(string.startsWith(STRING_PREFIX))
-    			return string.substring(STRING_PREFIX.length()).replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
-    		if(string.startsWith(WIDGET_PREFIX))
-    			{
-    	        	String cut = string.substring(WIDGET_PREFIX.length());
-    	        	String path = cut.substring(0, cut.indexOf("[")-1);
-    	        	Widget widget = loadWidget(new File(path));
-    	        	widget.load(cut.substring(cut.indexOf("]")+1));
-    	        	return widget;
-    			}
-    		//no prefix: old save file
-    		return oldGetItem(string);
-    	}
+File file = new File(string);
+if(file.exists())
+{
+try
+{
+Image image = ImageIO.read(file);
+file.delete();
+return image;
+}
+catch (IOException e){ return file.getPath(); }
+}
+//file doesn't exist: interpret as string
+string = STRING_PREFIX + string;
+     }
+     if(string.startsWith(STRING_PREFIX))
+     return string.substring(STRING_PREFIX.length()).replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
+     if(string.startsWith(WIDGET_PREFIX))
+     {
+     String cut = string.substring(WIDGET_PREFIX.length());
+     String path = cut.substring(0, cut.indexOf("[")-1);
+     Widget widget = loadWidget(new File(path));
+     widget.load(cut.substring(cut.indexOf("]")+1));
+     return widget;
+     }
+     //no prefix: old save file
+     return oldGetItem(string);
+     }
     
     /** @deprecated use {@link #getItem(String)}. */
     @Deprecated
@@ -855,40 +849,6 @@ public class Main implements ActionListener, WindowListener
         return string.replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
     }
 
-    public static String generateCode(String string)
-    {
-    	if(string.length()<2)
-		{
-			return string;
-		}
-		byte[] bytes = null;
-		MessageDigest d = null;
-		try
-		{
-			bytes = string.getBytes("UTF-8");
-			d = MessageDigest.getInstance("MD5");
-		}
-		catch (NoSuchAlgorithmException e){ e.printStackTrace(); }
-		catch (UnsupportedEncodingException e){ e.printStackTrace(); }
-		
-		byte[] digest = d.digest(bytes);
-		BigInteger big = new BigInteger(1,digest);
-		String code = big.toString(36);
-		Pattern p = Pattern.compile("[0-9][a-z]([a-z])");
-		Matcher m = p.matcher(code);
-		ArrayList<String> groups = new ArrayList<String>();
-		while(m.find())
-		{
-			groups.add(m.group());
-		}
-		for(String s : groups)
-		{
-			code = code.replaceAll(s, s.toUpperCase());
-		}
-		code = code.replaceAll(groups.get(1).toUpperCase(), " ");
-		code = code.substring(0, 8);
-		return code;
-    }
     // Transparency
     public static void setTransparent(JWindow window)
     {
