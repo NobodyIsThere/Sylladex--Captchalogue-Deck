@@ -44,7 +44,7 @@ public class RPObject extends Widget implements MouseListener
 		if(img.exists())
 			setImages(img);
 		
-		code = Main.generateCode(string);
+		code = Alchemy.generateCode(string);
 	}
 	
 	@Override
@@ -124,7 +124,7 @@ public class RPObject extends Widget implements MouseListener
 	{
 		//Ask for a name
 		string = JOptionPane.showInputDialog("Enter a name for the item.");
-		code = Main.generateCode(string);
+		code = Alchemy.generateCode(string);
 		//Accept an image
 		ImageFileFilter filter = new ImageFileFilter();
 		image_chooser.setFileFilter(filter);

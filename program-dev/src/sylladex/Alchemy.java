@@ -1,9 +1,5 @@
 package sylladex;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 public final class Alchemy
 {
 	private final static char[] CHARS = { '0', '1', '2', '3', '4', '5', '6',
@@ -17,32 +13,43 @@ public final class Alchemy
 	
 	public static String generateCode(String string)
 	{
-		if(string.length() < 2) { return string; }
-		byte[] bytes = null;
-		MessageDigest d = null;
 		try
 		{
-			bytes = string.getBytes("UTF-8");
-			d = MessageDigest.getInstance("MD5");
+			if(string.length() < 2) { return string; }
+			
+			int value = Math.abs(string.hashCode()*1000);
+			
+			String code = toBase64(value);
+			code = code.substring(0, 8);
+			return code;
 		}
-		catch (NoSuchAlgorithmException e)
+		catch (Exception e)
 		{
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		catch (UnsupportedEncodingException e)
-		{
-			e.printStackTrace();
-		}
-		
-		byte[] digest = d.digest(bytes);
-		String code = toBase64(digest);
-		code = code.substring(0, 8);
-		return code;
+		return "";
 	}
 	
-	private static String toBase64(byte[] bytes)
+	private static String toBase64(int hash)
 	{
-		return new String();
+		try
+		{
+			String code = "";
+			while(hash!=0)
+			{
+				int mod = hash % 64;
+				code = CHARS[mod] + code;
+				hash = hash/64;
+			}
+			return code;
+		}
+		catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
 	}
 	
 	/**
@@ -106,7 +113,6 @@ public final class Alchemy
 	 *            and ! or ?
 	 * @return a boolean[][], with true being punched.
 	 */
-	
 	public static boolean[][] punchPattern(String code)
 	{
 		while (true)
