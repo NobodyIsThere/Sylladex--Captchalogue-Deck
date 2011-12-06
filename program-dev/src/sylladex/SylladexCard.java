@@ -104,6 +104,11 @@ public class SylladexCard implements MouseInputListener
 		return string;
 	}
 	
+	public String getCode()
+	{
+		return Alchemy.generateCode(getItemString());
+	}
+	
 	public Image getImage()
 	{
 		return image;
