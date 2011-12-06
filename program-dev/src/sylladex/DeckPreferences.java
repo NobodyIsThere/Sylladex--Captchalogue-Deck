@@ -466,6 +466,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			"-----<br/>" +
 			"<b>Additional Codesmiths:</b><br/>" +
 			"evacipatedBox<br/>" +
+			"mezzoEmrys<br/>" +
 			"Nokob<br/>" +
 			"-----<br/>" +
 			"<b>Additional Appearance Sculptors:</b><br/>" +
