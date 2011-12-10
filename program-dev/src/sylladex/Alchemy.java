@@ -13,43 +13,26 @@ public final class Alchemy
 	
 	public static String generateCode(String string)
 	{
-		try
-		{
-			if(string.length() < 2) { return string; }
+		if(string.length() < 3) { return string; }
 			
-			int value = Math.abs(string.hashCode()*1000);
+		int value = string.hashCode();
 			
-			String code = toBase64(value);
-			code = code.substring(0, 8);
-			return code;
-		}
-		catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "";
+		String code = toBase64(value);
+		code = code.substring(0, 8);
+		return code;
 	}
 	
+	//Doesn't actually return the value in base 64. It'd be too short if it did.
 	private static String toBase64(int hash)
 	{
-		try
+		String code = "";
+		while(hash!=0)
 		{
-			String code = "";
-			while(hash!=0)
-			{
-				int mod = hash % 64;
-				code = CHARS[mod] + code;
-				hash = hash/64;
-			}
-			return code;
+			int mod = hash % 64;
+			code = CHARS[mod] + code;
+			hash = hash/4;
 		}
-		catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "";
+		return code;
 	}
 	
 	/**
