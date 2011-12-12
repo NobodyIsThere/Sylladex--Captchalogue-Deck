@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 
-public class SylladexCard implements MouseInputListener
+public class SylladexCard implements MouseInputListener, ActionListener
 {
 	//Referring to me
 	private int id;
@@ -21,6 +21,8 @@ public class SylladexCard implements MouseInputListener
 	private Widget widget = null;
 	private JLabel icon; //dock icon
 	
+	private JPopupMenu popup;
+	
 	private boolean accessible = true; //Whether or not the card is click-able
 	
 	//Referring to my avatar
@@ -31,6 +33,10 @@ public class SylladexCard implements MouseInputListener
 	private JTextArea cardtext; //mine - shows strings
 	private JPanel widgetpanel; //controlled by the widget.
 	private JPanel foreground;
+	
+	//Alchemy
+	private JWindow reverse;
+	private JLabel flip;
 	private JPanel holes;
 	
 	private JLabel inaccessible;
@@ -56,6 +62,10 @@ public class SylladexCard implements MouseInputListener
 		ImageIcon cardbgimage = Main.createImageIcon(deck.getModus().getCardBgUrl());
 		JLabel cardbg = new JLabel(cardbgimage);
 		cardbg.setBounds(0,0,getWidth(),getHeight());
+		flip = new JLabel(Main.createImageIcon(deck.getModus().getFlipButtonBgUrl()));
+		flip.setBounds(getWidth()-10,getHeight()-10,5,5);
+		flip.setVisible(false);
+		flip.addMouseListener(this);
 		
 		inaccessible = new JLabel(Main.createImageIcon("modi/global/inaccessible.png"));
 		inaccessible.setBounds(0,0,getWidth(),getHeight());
@@ -79,6 +89,9 @@ public class SylladexCard implements MouseInputListener
 		
 		pane.setLayer(cardbg, 0);
 		pane.add(cardbg);
+		
+		pane.setLayer(flip, 413);
+		pane.add(flip);
 		
 		pane.setLayer(inaccessible, 100);
 		
@@ -409,11 +422,73 @@ public class SylladexCard implements MouseInputListener
 		return file==null && string==null && image==null && widget==null;
 	}
 	
+	private void flip()
+	{
+		reverse = new JWindow();
+		reverse.setSize(323,410);
+		reverse.setLocationRelativeTo(null);
+		Main.setTransparent(reverse);
+		JLayeredPane pane = new JLayeredPane();
+		pane.setBounds(0,0,296,376);
+		pane.setLayout(null);
+		
+		JLabel background = new JLabel(Main.createImageIcon(deck.getModus().getCardBackBgUrl()));
+		background.setBounds(0,0,323,410);
+		pane.setLayer(background, 0);
+		pane.add(background);
+		
+		JLabel distaction = new JLabel(Main.createImageIcon("modi/global/captcha.gif"));
+		distaction.setBounds(31,30,271,352);
+		pane.setLayer(distaction, 1);
+		pane.add(distaction);
+		
+		JLabel code = new JLabel("<html><font face=Courier size=20 color=ccccff>" + getCode() + "</font></html>");
+		code.setHorizontalAlignment(JLabel.CENTER);
+		code.setBounds(0,0,323,410);
+		pane.setLayer(code, 2);
+		pane.add(code);
+		
+		reverse.addMouseListener(this);
+		reverse.add(pane);
+		reverse.setVisible(true);
+	}
+	
+	private void createPopupMenu(MouseEvent e)
+	{
+		popup = new JPopupMenu();
+		JMenuItem open = new JMenuItem("Open");
+			open.addActionListener(this);
+			open.setActionCommand("open");
+		JMenuItem flip = new JMenuItem("Flip");
+			flip.addActionListener(this);
+			flip.setActionCommand("flip");
+		
+		popup.add(open);
+		popup.add(flip);
+		
+		popup.show(icon, e.getX(), e.getY());
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		if(e.getActionCommand().equals("open"))
+		{
+			deck.openWithoutRemoval(this);
+		}
+		else if(e.getActionCommand().equals("flip"))
+		{
+			flip();
+		}
+	}
+	
 	// Mouse functions
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
-		if(e.getSource().equals(cardicon) || e.getSource().equals(cardtext) || e.getSource().equals(widgetpanel) || e.getSource().equals(icon))
+		if(e.getSource().equals(cardicon)
+				|| e.getSource().equals(cardtext)
+				|| e.getSource().equals(widgetpanel))
 		{
 			if(accessible)
 			{
@@ -430,6 +505,24 @@ public class SylladexCard implements MouseInputListener
 				}
 			}
 		}
+		
+		if(e.getSource().equals(icon) && accessible)
+		{
+			if(e.getButton()==MouseEvent.BUTTON1)
+			{ deck.getModus().open(this); }
+			else
+			{ createPopupMenu(e); }
+		}
+		
+		if(e.getSource().equals(flip))
+		{
+			if(reverse==null){ flip(); }
+		}
+		else if(e.getSource().equals(reverse))
+		{
+			reverse.setVisible(false);
+			reverse = null;
+		}
 	}
 	@Override
 	public void mouseEntered(MouseEvent e)
@@ -441,6 +534,8 @@ public class SylladexCard implements MouseInputListener
 		{
 			widget.mouseEntered(e);
 		}
+		
+		if(!isEmpty()){ flip.setVisible(true); }
 	}
 	@Override
 	public void mouseExited(MouseEvent e)
@@ -452,6 +547,8 @@ public class SylladexCard implements MouseInputListener
 		{
 			widget.mouseExited(e);
 		}
+		
+		flip.setVisible(false);
 	}
 	@Override
 	public void mousePressed(MouseEvent e)
@@ -527,4 +624,6 @@ public class SylladexCard implements MouseInputListener
 		public void mouseExited(MouseEvent e){}
 		
 	}
+
+	
 }

@@ -416,6 +416,11 @@ public class Main implements ActionListener, WindowListener
 		refreshDockIcons();
 	}
 	
+	private void createPopupMenu(SylladexCard card)
+	{
+		
+	}
+	
 	public void showDock()
 	{
 		if(prefs.top())
@@ -1008,7 +1013,6 @@ public class Main implements ActionListener, WindowListener
 			cardholder.setVisible(false);
 		}
 	}
-	
 	
 	@Override
 	public void windowActivated(WindowEvent arg0){}

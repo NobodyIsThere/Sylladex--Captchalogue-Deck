@@ -95,12 +95,7 @@ public class RPObject extends Widget implements MouseListener
 	{
 		if(card.isAccessible())
 		{
-			if(e.getButton()==MouseEvent.BUTTON3)
-			{
-				JOptionPane.showMessageDialog(null, "The CAPTCHA code reads: " + code);
-			}
-		
-			else if(e.getButton()==MouseEvent.BUTTON1)
+			if(e.getButton()==MouseEvent.BUTTON1)
 			{
 				m.getModus().open(card);
 			}

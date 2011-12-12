@@ -14,7 +14,9 @@ public abstract class FetchModus implements ActionListener
 	protected String image_background_top = "modi/stack/dockbg_top.png";
 	protected String image_text = "modi/stack/docktext.png";
 	protected String image_card = "modi/stack/card.png";
+	protected String image_card_back = "modi/stack/back.png";
 	protected String image_dock_card = "modi/global/dockcard.png";
+	protected String image_flip_button = "modi/global/flip.png";
 	
 	protected String info_image = "modi/stack/modus.png";
 	protected String info_name = "Untitled";
@@ -99,9 +101,17 @@ public abstract class FetchModus implements ActionListener
 	{
 		return image_card;
 	}
+	public String getCardBackBgUrl()
+	{
+		return image_card_back;
+	}
 	public String getDockCardBg()
 	{
 		return image_dock_card;
+	}
+	public String getFlipButtonBgUrl()
+	{
+		return image_flip_button;
 	}
 	public Color getBackgroundColour()
 	{

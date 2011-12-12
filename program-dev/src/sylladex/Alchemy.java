@@ -15,7 +15,7 @@ public final class Alchemy
 	{
 		if(string.length() < 3) { return string; }
 			
-		int value = string.hashCode();
+		int value = Math.abs(string.hashCode());
 			
 		String code = toBase64(value);
 		code = code.substring(0, 8);
