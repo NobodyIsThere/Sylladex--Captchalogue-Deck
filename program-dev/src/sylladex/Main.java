@@ -416,11 +416,6 @@ public class Main implements ActionListener, WindowListener
 		refreshDockIcons();
 	}
 	
-	private void createPopupMenu(SylladexCard card)
-	{
-		
-	}
-	
 	public void showDock()
 	{
 		if(prefs.top())

@@ -588,7 +588,7 @@ public class TreeModus extends FetchModus
 				card.setLayer(node.getY()+node.getX());
 		}
 		if(tree!=null)
-		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + card_width*2, tree.getHeight()*card_height + card_height); }
+		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + card_width, tree.getHeight()*card_height + card_height); }
 		m.refreshCardHolder();
 	}
 	

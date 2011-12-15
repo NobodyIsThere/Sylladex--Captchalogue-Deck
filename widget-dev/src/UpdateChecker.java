@@ -444,6 +444,15 @@ public class UpdateChecker extends Widget
 						}
 				});
 				popupMenu.add(remove);
+				JMenuItem flip = new JMenuItem("Flip");
+				flip.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e)
+					{
+						card.flip();
+					}
+				});
+				popupMenu.add(flip);
 				JMenuItem checkNow = new JMenuItem("Check for Updates Now");
 				checkNow.addActionListener(new ActionListener(){
 					@Override

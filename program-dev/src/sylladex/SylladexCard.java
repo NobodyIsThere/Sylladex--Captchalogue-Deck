@@ -422,29 +422,30 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		return file==null && string==null && image==null && widget==null;
 	}
 	
-	private void flip()
+	public void flip()
 	{
+		if(reverse!=null){ return; }
 		reverse = new JWindow();
-		reverse.setSize(323,410);
+		reverse.setSize(148,188);
 		reverse.setLocationRelativeTo(null);
 		Main.setTransparent(reverse);
 		JLayeredPane pane = new JLayeredPane();
-		pane.setBounds(0,0,296,376);
+		pane.setBounds(0,0,148,188);
 		pane.setLayout(null);
 		
 		JLabel background = new JLabel(Main.createImageIcon(deck.getModus().getCardBackBgUrl()));
-		background.setBounds(0,0,323,410);
+		background.setBounds(0,0,148,188);
 		pane.setLayer(background, 0);
 		pane.add(background);
 		
 		JLabel distaction = new JLabel(Main.createImageIcon("modi/global/captcha.gif"));
-		distaction.setBounds(31,30,271,352);
+		distaction.setBounds(14,14,124,161);
 		pane.setLayer(distaction, 1);
 		pane.add(distaction);
 		
-		JLabel code = new JLabel("<html><font face=Courier size=20 color=ccccff>" + getCode() + "</font></html>");
+		JLabel code = new JLabel("<html><font face=Courier size=5 color=ccccff>" + getCode() + "</font></html>");
 		code.setHorizontalAlignment(JLabel.CENTER);
-		code.setBounds(0,0,323,410);
+		code.setBounds(0,0,148,188);
 		pane.setLayer(code, 2);
 		pane.add(code);
 		
@@ -516,7 +517,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		
 		if(e.getSource().equals(flip))
 		{
-			if(reverse==null){ flip(); }
+			flip();
 		}
 		else if(e.getSource().equals(reverse))
 		{
@@ -535,7 +536,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 			widget.mouseEntered(e);
 		}
 		
-		if(!isEmpty()){ flip.setVisible(true); }
+		if(!isEmpty() && accessible){ flip.setVisible(true); }
 	}
 	@Override
 	public void mouseExited(MouseEvent e)
