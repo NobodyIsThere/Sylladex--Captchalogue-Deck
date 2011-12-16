@@ -22,23 +22,25 @@ public class Main implements ActionListener, WindowListener
 	//Controls everything.
 	
 	/** Prefixes for save strings, to indicate the type of data that is stored. */
-	
 	public static final String FILE_PREFIX = "[FILE]", STRING_PREFIX = "[STRING]", IMAGE_PREFIX = "[IMAGE]", WIDGET_PREFIX = "[WIDGET]";
-	
-	private static final long serialVersionUID = 1L;
 	
 	private DeckPreferences prefs;
 	private FetchModus modus;
 	private ArrayList<SylladexCard> sylladexcards = new ArrayList<SylladexCard>();
 	private ArrayList<JLabel> icons = new ArrayList<JLabel>();
 	
-	private JFrame dock;
+	private JWindow dock;
 	private JWindow cardholder;
 	private JLayeredPane pane;
 	private JLayeredPane iconpane;
 	private JLayeredPane cardpane;
 	private int deckwidth;
 	private int id;
+	
+	private SystemTray tray;
+	private PopupMenu popup;
+	private TrayIcon icon = new TrayIcon(createImageIcon("modi/stack/card.png").getImage());
+	private PopupListener popuplistener = new PopupListener();
 	
 	private Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 	
@@ -227,16 +229,13 @@ public class Main implements ActionListener, WindowListener
 	//Dock
 	private void createDock()
 	{
-		dock = new JFrame();
+		createSystemTray();
+		
+		dock = new JWindow();
 		pane = new JLayeredPane();
 		dock.setLayeredPane(pane);
 		//Window stuff
-		dock.setUndecorated(true);
-		dock.setResizable(false);
-		dock.setTitle("Sylladex::Captchalogue Deck");
-		dock.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		dock.addWindowListener(this);
-		
 		//Components
 		dock.setLayout(null);
 		refreshDock();
@@ -253,6 +252,8 @@ public class Main implements ActionListener, WindowListener
 			dock.setAlwaysOnTop(true);
 		else
 			dock.setAlwaysOnTop(false);
+		
+		refreshSystemTray();
 		
 		dock.setIconImage(createImageIcon(modus.image_card).getImage());
 		deckwidth = screensize.width;
@@ -276,6 +277,42 @@ public class Main implements ActionListener, WindowListener
 		dautohide_timer.stop();
 		dautoshow_timer.stop();
 		cautohide_timer.stop();
+	}
+	
+	private void createSystemTray()
+	{
+		if(!SystemTray.isSupported()){ return; }
+		popup = new PopupMenu();
+		
+		MenuItem alchemy = new MenuItem("Alchemy");
+			alchemy.addActionListener(popuplistener);
+			alchemy.setActionCommand("alchemy");
+		popup.add(alchemy);
+		
+		MenuItem preferences = new MenuItem("Preferences");
+			preferences.addActionListener(popuplistener);
+			preferences.setActionCommand("preferences");
+		popup.add(preferences);
+		
+		MenuItem exit = new MenuItem("Exit");
+			exit.addActionListener(popuplistener);
+			exit.setActionCommand("exit");
+		popup.add(exit);
+		
+		tray = SystemTray.getSystemTray();
+		icon = new TrayIcon(createImageIcon(modus.image_card).getImage());
+		
+		icon.setPopupMenu(popup);
+		try
+		{
+			tray.add(icon);
+		}
+		catch(Exception e){ e.printStackTrace(); }
+	}
+	
+	private void refreshSystemTray()
+	{
+		icon.setImage(createImageIcon(modus.image_card).getImage());
 	}
 	
 	private void addComponentsToDock()
@@ -900,6 +937,21 @@ public class Main implements ActionListener, WindowListener
 	}
 	
 	//Listeners-------------------------------------------------------------------------------------------------------
+	private class PopupListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			if(e.getActionCommand().equals("preferences"))
+			{
+				prefs.showPreferencesFrame();
+			}
+			else if(e.getActionCommand().equals("exit"))
+			{
+				System.exit(0);
+			}
+		}	
+	}
 	
 	private class DockListener implements MouseListener, MouseMotionListener
 	{
