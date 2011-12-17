@@ -300,7 +300,7 @@ public class Main implements ActionListener, WindowListener
 		popup.add(exit);
 		
 		tray = SystemTray.getSystemTray();
-		icon = new TrayIcon(createImageIcon(modus.image_card).getImage());
+		icon = new TrayIcon(createImageIcon("modi/global/trayicon.gif").getImage());
 		
 		icon.setPopupMenu(popup);
 		try
@@ -312,7 +312,6 @@ public class Main implements ActionListener, WindowListener
 	
 	private void refreshSystemTray()
 	{
-		icon.setImage(createImageIcon(modus.image_card).getImage());
 	}
 	
 	private void addComponentsToDock()
