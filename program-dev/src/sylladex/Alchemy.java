@@ -14,7 +14,7 @@ public final class Alchemy
 	public static String generateCode(String string)
 	{
 		if(string.length() < 3) { return string; }
-			
+		
 		int value = Math.abs(string.hashCode());
 			
 		String code = toBase64(value);

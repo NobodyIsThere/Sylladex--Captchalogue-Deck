@@ -1,1 +1,3 @@
-[FILE]/Users/adam/Development/git/Sylladex--Captchalogue-Deck/program-dev/modi/global/dockcard.png
+[FILE]C:\Development\git\sbahj.zip[NAME]sbahj.zip
+[WIDGET]widgets/RPObject.class[/WIDGET]None;C:\Users\Adam\Documents\Game Maker\Cursor\turret2.gif[NAME]None
+[WIDGET]widgets/UpdateChecker.class[/WIDGET]300;true;MSPA_HOME;6;6385;6;6385;n;[NAME]Update Checker

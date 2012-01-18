@@ -21,9 +21,6 @@ public class Main implements ActionListener, WindowListener
 	//Should be called "Sylladex", but has to be called "Main".
 	//Controls everything.
 	
-	/** Prefixes for save strings, to indicate the type of data that is stored. */
-	public static final String FILE_PREFIX = "[FILE]", STRING_PREFIX = "[STRING]", IMAGE_PREFIX = "[IMAGE]", WIDGET_PREFIX = "[WIDGET]";
-	
 	private DeckPreferences prefs;
 	private FetchModus modus;
 	private ArrayList<SylladexCard> sylladexcards = new ArrayList<SylladexCard>();
@@ -523,7 +520,7 @@ public class Main implements ActionListener, WindowListener
 		id++;
 	}
 	
-	private Widget loadWidget(File file)
+	protected Widget loadWidget(File file)
 	{
 		try
 		{
@@ -591,18 +588,16 @@ public class Main implements ActionListener, WindowListener
 	
 	private void openCard(SylladexCard card)
 	{
-		File file = card.getFile();
-		String string = card.getString();
-		Image image = card.getImage();
-		Widget widget = card.getWidget();
+		SylladexItem item = card.getItem();
+		Object o = item.getContents();
 		
-		if(file!=null)
+		if(o instanceof File)
 		{
 			try
 			{
 				if(Desktop.isDesktopSupported())
 				{
-					Desktop.getDesktop().open(file);
+					Desktop.getDesktop().open((File)o);
 				}
 			}
 			catch (IOException e)
@@ -610,27 +605,24 @@ public class Main implements ActionListener, WindowListener
 				e.printStackTrace();
 			}
 		}
-		else if(string!=null)
+		else if(o instanceof String)
 		{
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(string), co);
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection((String)o), co);
 		}
-		else if(image!=null)
+		else if(o instanceof Image)
 		{
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new ImageSelection(image), co);
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new ImageSelection((Image)o), co);
 		}
-		else if(widget!=null)
+		else if(o instanceof Widget)
 		{
-			widget.open();
+			((Widget)o).open();
 		}
 	}
 	
 	public void open(SylladexCard card)
 	{
 		openCard(card);
-		if(card.getFile()!=null) { card.setFile(null); }
-		if(card.getString()!=null) { card.setString(null); }
-		if(card.getImage()!=null) { card.setImage(null); }
-		if(card.getWidget()!=null) { card.setWidget(null); }
+		card.setItem(null);
 	}
 	
 	public void openWithoutRemoval(SylladexCard card)
@@ -733,8 +725,9 @@ public class Main implements ActionListener, WindowListener
 		return icon;
 	}
 	
-	public JLabel getIconLabelFromObject(Object o)
+	public JLabel getIconLabelFromItem(SylladexItem item)
 	{
+		Object o = item.getContents();
 		if(o instanceof File)
 		{
 			return new JLabel(getIconFromFile((File)o));
@@ -793,58 +786,6 @@ public class Main implements ActionListener, WindowListener
 		float ratio = new Float(height)/new Float(icon.getIconHeight()+0.1f);
 		if(ratio==0){ ratio = 0.1f; }
 		return new ImageIcon(image.getScaledInstance(Math.round(icon.getIconWidth()*ratio), height, Image.SCALE_SMOOTH));
-	}
-	
-	public Object getItem(String string)
-	{
-		if(string.startsWith(FILE_PREFIX))
-		{
-			string = string.substring(FILE_PREFIX.length());
-			string = string.replaceAll("http://", "");
-			String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
-			string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
-			string = string.replaceAll("/", p + System.getProperty("file.separator"));
-			
-			File file = new File(string);
-			if(file.exists())
-				return file;
-			//file doesn't exist: interpret as string
-			string = STRING_PREFIX + string;
-		}
-		if(string.startsWith(IMAGE_PREFIX))
-		{
-			string = string.substring(IMAGE_PREFIX.length());
-			string = string.replaceAll("http://", "");
-			String p = ""; if(System.getProperty("file.separator").equals("\\")) { p="\\"; }
-			string = string.replaceAll("\\\\", p + System.getProperty("file.separator"));
-			string = string.replaceAll("/", p + System.getProperty("file.separator"));
-			
-			File file = new File(string);
-			if(file.exists())
-			{
-				try
-				{
-					Image image = ImageIO.read(file);
-					file.delete();
-					return image;
-				}
-				catch (IOException e){ return file.getPath(); }
-			}
-			//file doesn't exist: interpret as string
-			string = STRING_PREFIX + string;
-		}
-		if(string.startsWith(STRING_PREFIX))
-			return string.substring(STRING_PREFIX.length()).replaceAll("SYLLADEX_NL", System.getProperty("line.separator"));
-		if(string.startsWith(WIDGET_PREFIX))
-		{
-			String cut = string.substring(WIDGET_PREFIX.length());
-			String path = cut.substring(0, cut.indexOf("[")-1);
-			Widget widget = loadWidget(new File(path));
-			widget.load(cut.substring(cut.indexOf("]")+1));
-			return widget;
-		}
-		//no prefix: old save file
-		return oldGetItem(string);
 	}
 	
 	/** @deprecated use {@link #getItem(String)}. */
@@ -942,6 +883,7 @@ public class Main implements ActionListener, WindowListener
 			}
 			else if(e.getActionCommand().equals("exit"))
 			{
+				prefs.cleanUp();
 				System.exit(0);
 			}
 		}	
@@ -1035,6 +977,54 @@ public class Main implements ActionListener, WindowListener
 		public void lostOwnership(Clipboard clipboard, Transferable contents){}
 	}
 	
+	public static class DragListener implements MouseListener, MouseMotionListener
+	{
+		int startx = 0;
+		int starty = 0;
+		boolean dragging = false;
+		JWindow window;
+		
+		public DragListener(JWindow window)
+		{
+			this.window = window;
+		}
+		
+		@Override
+		public void mouseDragged(MouseEvent e)
+		{
+			if(dragging)
+			{
+				int x = e.getXOnScreen();
+				int y = e.getYOnScreen();
+				window.setLocation(x-startx, y-starty);
+			}
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e)
+		{
+			dragging = true;
+			startx = e.getXOnScreen()-window.getX();
+			starty = e.getYOnScreen()-window.getY();
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e)
+		{
+			dragging = false;
+		}
+		
+		@Override
+		public void mouseMoved(MouseEvent e){}
+		@Override
+		public void mouseClicked(MouseEvent e){}
+		@Override
+		public void mouseEntered(MouseEvent e){}
+		@Override
+		public void mouseExited(MouseEvent e){}
+		
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
@@ -1062,10 +1052,7 @@ public class Main implements ActionListener, WindowListener
 	public void windowClosed(WindowEvent arg0){}
 	
 	@Override
-	public void windowClosing(WindowEvent w)
-	{
-		prefs.cleanUp();
-	}
+	public void windowClosing(WindowEvent w){}
 	
 	@Override
 	public void windowDeactivated(WindowEvent arg0){}

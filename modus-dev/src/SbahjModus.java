@@ -6,37 +6,52 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.Timer;
 
-public class StackModus extends FetchModus implements ActionListener
+public class SbahjModus extends FetchModus implements ActionListener
 {
 	//Stack stuff
 	private LinkedList<SylladexCard> stack = new LinkedList<SylladexCard>();
 	private JLabel arrow;
 	private Timer timer = new Timer(1000, this);
 	
-	public StackModus(Main m)
+	public SbahjModus(Main m)
 	{
 		this.m = m;
 		
-		info_image = "modi/stack/modus.png";
-		info_name = "Stack";
-		info_author = "gumptiousCreator";
-		color_background = new Color(255, 6, 124);
+		image_background_top = "modi/sbahj/dock_top.png";
+		image_background_bottom = "modi/sbahj/dock.png";
+		image_text = "modi/sbahj/text.png";
+		image_card = "modi/sbahj/card.png";
+		image_dock_card = "modi/sbahj/dockcard.png";
+		
+		info_image = "modi/sbahj/modus.png";
+		info_name = "SWEET BRO AND HELLA JEFF";
+		info_author = "gumtpiousCreator";
+		
+		item_file = "modi/items/queuestack.txt";
 		prefs_file = "modi/prefs/stackprefs.txt";
 		
-		startcards = 4;
-		origin = new Point(21,120);
+		color_background = new Color(255, 0, 255);
+		
+		startcards = 8;
+		origin = new Point(50,200);
+		draw_default_dock_icons = true;
+		draw_empty_cards = true;
+		shade_inaccessible_cards = true;
 		
 		icons = new ArrayList<JLabel>();
 	}
 	
 	//Inherited methods
-	public void showSelectionWindow(){}
+	public void showSelectionWindow()
+	{
+		JOptionPane.showConfirmDialog(m.getCardHolder(), "JESUS DUFE WHAT YOU CLICK FOR");
+	}
 	
 	public void addGenericItem(Object o)
 	{
 		checkBottomCard();
 		SylladexCard card = m.getNextEmptyCard();
-		SylladexItem item = new SylladexItem("ITEM", o, m);
+		SylladexItem item = new SylladexItem("ITEMP", o, m);
 		card.setItem(item);
 		
 		stack.addFirst(card);
@@ -129,14 +144,14 @@ public class StackModus extends FetchModus implements ActionListener
 		for (SylladexCard card : cards)
 		{
 			int index = stack.indexOf(card);
-			card.setPosition(new Point(index*23, index*23));
+			card.setPosition(new Point(index*25, index*26));
 			card.setLayer(100-index);
 			
 			card.setAccessible(false);
 		}
 		if(stack.size()!=0)
 			stack.getFirst().setAccessible(true);
-		m.setCardHolderSize(stack.size()*23 + card_width, stack.size()*23 + card_height);
+		m.setCardHolderSize(stack.size()*20 + card_width, stack.size()*20 + card_height);
 	}
 
 	@Override

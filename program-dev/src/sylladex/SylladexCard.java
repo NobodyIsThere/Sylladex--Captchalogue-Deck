@@ -1,24 +1,26 @@
 package sylladex;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JWindow;
 import javax.swing.event.MouseInputListener;
+import sylladex.Main.DragListener;
 
 public class SylladexCard implements MouseInputListener, ActionListener
 {
 	//Referring to me
 	private int id;
 	private Main deck;
-	private File file = null;
-	private String string = null;
-	private String imagestring = "IMAGE";
-	private Image image = null;
-	private Widget widget = null;
+	private SylladexItem item;
+	
 	private JLabel icon; //dock icon
 	
 	private JPopupMenu popup;
@@ -29,10 +31,8 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	private Point position = new Point(0,0);
 	private JLayeredPane pane;	//mine
 	private JPanel panel; //The card itself
-	private JLabel cardicon; //mine - shows images and icons
-	private JTextArea cardtext; //mine - shows strings
-	private JPanel widgetpanel; //controlled by the widget.
-	private JPanel foreground;
+	private JPanel itempanel = new JPanel(); //Whatever the SylladexItem decides to show
+	private JPanel foreground; //Whatever the modus wants to show on top of that
 	
 	//Alchemy
 	private JWindow reverse;
@@ -74,15 +74,15 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		foreground.setOpaque(false);
 		foreground.setLayout(null);
 		
-		cardbg.addMouseListener(this);
-		cardbg.addMouseMotionListener(this);
-		
 		if(deck.getModus().areCardsDraggable())
 		{
 			DragListener mouse = new DragListener(deck.getCardHolder());
 			cardbg.addMouseListener(mouse);
 			cardbg.addMouseMotionListener(mouse);
 		}
+		
+		cardbg.addMouseListener(this);
+		cardbg.addMouseMotionListener(this);
 		
 		pane.setLayer(cardbg, 0);
 		pane.add(cardbg);
@@ -104,233 +104,42 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		return id;
 	}
 	
-	public File getFile()
+	public SylladexItem getItem()
 	{
-		return file;
+		return item;
 	}
 	
-	public String getString()
+	public Object getItemContents()
 	{
-		return string;
+		return item.getContents();
 	}
 	
 	public String getCode()
 	{
-		return Alchemy.generateCode(getItemString());
+		return item.getCode();
 	}
 	
-	public Image getImage()
+	public void setItem(SylladexItem item)
 	{
-		return image;
-	}
-	
-	public Widget getWidget()
-	{
-		return widget;
-	}
-	
-	public String getSaveString()
-	{
-		if(file!=null)
+		if(item!=null)
 		{
-			String path;
-			if(!deck.getPreferences().usb_mode())
-				path = file.getPath();
-			else
-				path = "files" + System.getProperty("file.separator") + file.getName();
-			return Main.FILE_PREFIX + path;
-		}
-		else if(string!=null)
-		{
-			return Main.STRING_PREFIX + string.replaceAll(System.getProperty("line.separator"), "SYLLADEX_NL");
-		}
-		else if(image!=null)
-		{
-			if(image instanceof BufferedImage)
+			this.item = item;
+			itempanel = item.getPanel();
+			itempanel.setBounds(0,0,getWidth(),getHeight());
+			pane.setLayer(itempanel, 1);
+			
+			pane.add(itempanel);
+			if(!deck.getModus().draw_empty_cards) { addToCardHolder(); }
+			
+			if(item.getContents() instanceof Widget)
 			{
-				File f = null;
-				while(f == null ? true : f.exists()) //don't want to overwrite a previous image
-					f = new File("files" + System.getProperty("file.separator") + "captchalogued_image_" + new Double(Math.random()).toString().replaceAll("\\.", "") + ".png");
-				BufferedImage b = (BufferedImage)image;
-				try
-				{
-					ImageIO.write(b, "png", f);
-				}
-				catch (IOException e){ e.printStackTrace(); }
-				return Main.IMAGE_PREFIX + f.getPath().substring(f.getPath().indexOf("files" + System.getProperty("file.separator") + "captchalogued_image_"));
+				((Widget)item.getContents()).setCard(this);
 			}
 		}
-		else if(widget!=null)
-		{
-			return Main.WIDGET_PREFIX + "widgets/" + widget.getClass().getName() + ".class[/WIDGET]" + widget.getSaveString();
-		}
-		return null;
-	}
-	
-	public String getItemString()
-	{
-		if(file!=null){ return file.getName(); }
-		else if(image!=null){ return imagestring; }
-		else if(string!=null){ return string; }
-		else if(widget!=null){ return widget.getString(); }
-		return null;
-	}
-	
-	public void setImageString(String s)
-	{
-		imagestring = s;
-	}
-	
-	public void setItem(Object o)
-	{
-		if(o instanceof File)
-		{
-			setFile((File)o);
-		}
-		else if(o instanceof Image)
-		{
-			setImage((Image)o);
-		}
-		else if(o instanceof String)
-		{
-			setString((String)o);
-		}
-		else if(o instanceof Widget)
-		{
-			setWidget((Widget)o);
-		}
-	}
-	
-	public void setFile(File file)
-	{
-		this.file = file;
-		if(file!=null)
-		{
-			string = null;
-			image = null;
-			widget = null;
-			
-			Icon icon = Main.getIconFromFile(file);
-			String filename = file.getName();
-			cardicon = new JLabel(filename);
-			cardicon.setBounds(15*getWidth()/148,35*getHeight()/94,24*getWidth()/37,82*getHeight()/188);
-			cardicon.setIcon(icon);
-			cardicon.setHorizontalAlignment(JLabel.CENTER);
-			cardicon.setVerticalAlignment(JLabel.TOP);
-			cardicon.setVerticalTextPosition(JLabel.BOTTOM);
-			cardicon.setHorizontalTextPosition(JLabel.CENTER);
-			
-			cardicon.addMouseListener(this);
-			pane.setLayer(cardicon, 1);
-			pane.add(cardicon);
-			
-			if(!deck.getModus().draw_empty_cards)
-				addToCardHolder();
-		}
 		else
 		{
-			if(cardicon!=null)
-				pane.remove(cardicon);
-			icon = null;
-			if(!deck.getModus().draw_empty_cards)
-				removeFromCardHolder();
-		}
-		deck.refreshDockIcons();
-	}
-	
-	public void setImage(Image image)
-	{
-		this.image = image;
-		if(image!=null)
-		{
-			file = null;
-			string = null;
-			widget = null;
-			
-			cardicon = new JLabel();
-			cardicon.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
-			Icon icon = Main.getSizedIcon(image, cardicon.getWidth(), cardicon.getHeight());
-			cardicon.setIcon(icon);
-			cardicon.setHorizontalAlignment(JLabel.CENTER);
-			cardicon.setVerticalAlignment(JLabel.CENTER);
-			
-			cardicon.addMouseListener(this);
-			pane.setLayer(cardicon, 1);
-			pane.add(cardicon);
-			
-			if(!deck.getModus().draw_empty_cards)
-				addToCardHolder();
-		}
-		else
-		{
-			pane.remove(cardicon);
-			icon = null;
-			if(!deck.getModus().draw_empty_cards)
-				removeFromCardHolder();
-		}
-		deck.refreshDockIcons();
-	}
-	
-	public void setString(String string)
-	{
-		this.string = string;
-		if(string!=null)
-		{
-			file = null;
-			image = null;
-			widget = null;
-			
-			cardtext = new JTextArea(string);
-			cardtext.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
-			cardtext.setAlignmentX(JTextArea.CENTER_ALIGNMENT);
-			cardtext.setAlignmentY(JTextArea.CENTER_ALIGNMENT);
-			cardtext.setEditable(false);
-			cardtext.setLineWrap(true);
-			cardtext.setWrapStyleWord(true);
-			
-			cardtext.addMouseListener(this);
-			pane.setLayer(cardtext, 1);
-			pane.add(cardtext);
-			
-			if(!deck.getModus().draw_empty_cards)
-				addToCardHolder();
-		}
-		else
-		{
-			pane.remove(cardtext);
-			icon = null;
-			if(!deck.getModus().draw_empty_cards)
-				removeFromCardHolder();
-		}
-		deck.refreshDockIcons();
-	}
-	
-	public void setWidget(Widget widget)
-	{
-		this.widget = widget;
-		if(widget!=null)
-		{
-			widget.card = this;
-			
-			file = null;
-			image = null;
-			string = null;
-			
-			widgetpanel = widget.getPanel();
-			widgetpanel.setBounds(15*getWidth()/148,60*getHeight()/188,24*getWidth()/37,100*getHeight()/188);
-			pane.setLayer(widgetpanel, 1);
-			pane.add(widgetpanel);
-			widgetpanel.addMouseListener(this);
-			
-			if(!deck.getModus().draw_empty_cards)
-				addToCardHolder();
-		}
-		else
-		{
-			pane.remove(widgetpanel);
-			icon = null;
-			if(!deck.getModus().draw_empty_cards)
-				removeFromCardHolder();
+			pane.remove(itempanel);
+			if(!deck.getModus().draw_empty_cards) { removeFromCardHolder(); }
 		}
 		deck.refreshDockIcons();
 	}
@@ -416,7 +225,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	
 	public boolean isEmpty()
 	{
-		return file==null && string==null && image==null && widget==null;
+		return item==null;
 	}
 	
 	public void flip()
@@ -452,6 +261,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		reverse.addMouseMotionListener(rl);
 		reverse.add(pane);
 		reverse.setVisible(true);
+		reverse.setAlwaysOnTop(true);
 	}
 	
 	private void createPopupMenu(MouseEvent e)
@@ -487,34 +297,6 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
-		if(e.getSource().equals(cardicon)
-				|| e.getSource().equals(cardtext)
-				|| e.getSource().equals(widgetpanel))
-		{
-			if(accessible)
-			{
-				if(widget==null)
-				{
-					if(e.getButton()==MouseEvent.BUTTON1)
-						deck.getModus().open(this);
-					else
-						deck.openWithoutRemoval(this);
-				}
-				else
-				{
-					widget.mouseClicked(e);
-				}
-			}
-		}
-		
-		if(e.getSource().equals(icon) && accessible)
-		{
-			if(e.getButton()==MouseEvent.BUTTON1)
-			{ deck.getModus().open(this); }
-			else
-			{ createPopupMenu(e); }
-		}
-		
 		if(e.getSource().equals(flip))
 		{
 			flip();
@@ -524,6 +306,27 @@ public class SylladexCard implements MouseInputListener, ActionListener
 			reverse.setVisible(false);
 			reverse = null;
 		}
+		else if(e.getSource().equals(icon) && accessible)
+		{
+			if(e.getButton()==MouseEvent.BUTTON1)
+			{ deck.getModus().open(this); }
+			else
+			{ createPopupMenu(e); }
+		}
+		else if(accessible)
+		{
+			if(!(item.getContents() instanceof Widget))
+			{
+				if(e.getButton()==MouseEvent.BUTTON1)
+					deck.getModus().open(this);
+				else
+					deck.openWithoutRemoval(this);
+			}
+			else
+			{
+				((Widget)item.getContents()).mouseClicked(e);
+			}
+		}
 	}
 	@Override
 	public void mouseEntered(MouseEvent e)
@@ -531,9 +334,12 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		deck.getModus().actionPerformed(new ActionEvent(this, 612, "card mouse enter"));
 		deck.getCardHolder().getMouseListeners()[0].mouseEntered(e);
 		
-		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		if(!isEmpty())
 		{
-			widget.mouseEntered(e);
+			if((item.getContents() instanceof Widget))
+			{
+				((Widget)item.getContents()).mouseEntered(e);
+			}
 		}
 		
 		if(!isEmpty() && accessible){ flip.setVisible(true); }
@@ -544,9 +350,12 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		deck.getModus().actionPerformed(new ActionEvent(this, 613, "card mouse exit"));
 		deck.getCardHolder().getMouseListeners()[0].mouseExited(e);
 		
-		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		if(!isEmpty())
 		{
-			widget.mouseExited(e);
+			if((item.getContents() instanceof Widget))
+			{
+				((Widget)item.getContents()).mouseExited(e);
+			}
 		}
 		
 		flip.setVisible(false);
@@ -554,83 +363,27 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	@Override
 	public void mousePressed(MouseEvent e)
 	{
-		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		if(!isEmpty())
 		{
-			widget.mousePressed(e);
+			if((item.getContents() instanceof Widget))
+			{
+				((Widget)item.getContents()).mousePressed(e);
+			}
 		}
 	}
 	@Override
 	public void mouseReleased(MouseEvent e)
 	{
-		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
+		if(!isEmpty())
 		{
-			widget.mouseReleased(e);
-		}	
-	}
-	@Override
-	public void mouseDragged(MouseEvent e)
-	{
-		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
-		{
-			widget.mouseEntered(e);
-		}
-	}
-	@Override
-	public void mouseMoved(MouseEvent e)
-	{
-		if(widget!=null && (e.getSource().equals(widgetpanel)||e.getSource().equals(icon)))
-		{
-			widget.mouseEntered(e);
-		}
-	}
-	
-	private class DragListener implements MouseListener, MouseMotionListener
-	{
-		int startx = 0;
-		int starty = 0;
-		boolean dragging = false;
-		JWindow window;
-		
-		public DragListener(JWindow window)
-		{
-			this.window = window;
-		}
-		
-		@Override
-		public void mouseDragged(MouseEvent e)
-		{
-			if(dragging)
+			if((item.getContents() instanceof Widget))
 			{
-				int x = e.getXOnScreen();
-				int y = e.getYOnScreen();
-				window.setLocation(x-startx, y-starty);
+				((Widget)item.getContents()).mouseReleased(e);
 			}
 		}
-		
-		@Override
-		public void mousePressed(MouseEvent e)
-		{
-			dragging = true;
-			startx = e.getX()+position.x;
-			starty = e.getY()+position.y;
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e)
-		{
-			dragging = false;
-		}
-		
-		@Override
-		public void mouseMoved(MouseEvent e){}
-		@Override
-		public void mouseClicked(MouseEvent e){}
-		@Override
-		public void mouseEntered(MouseEvent e){}
-		@Override
-		public void mouseExited(MouseEvent e){}
-		
 	}
-
-	
+	@Override
+	public void mouseDragged(MouseEvent e){}
+	@Override
+	public void mouseMoved(MouseEvent e){}
 }

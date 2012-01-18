@@ -942,16 +942,22 @@ public class UpdateChecker extends Widget
 		 * Shows the popup menu if e is the popup trigger.
 		 * @return whether or not the popup menu is shown.
 		 */
-		private boolean popup(MouseEvent e)
+		private void popup(MouseEvent e)
 			{
-				boolean popupShown = e.isPopupTrigger();
-				if(popupShown)
-					popupMenu.show(e.getComponent(), e.getX(), e.getY());
-				return popupShown;
+				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		@Override
 		public void mouseClicked(MouseEvent e)
-			{}
+		{
+			if(e.getButton()==MouseEvent.BUTTON1)
+			{
+				open.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "open", e.getWhen(), e.getModifiers()));
+			}
+			else
+			{
+				popup(e);
+			}
+		}
 		@Override
 		public void mouseEntered(MouseEvent e)
 			{}
@@ -959,16 +965,7 @@ public class UpdateChecker extends Widget
 		public void mouseExited(MouseEvent e)
 			{}
 		@Override
-		public void mousePressed(MouseEvent e)
-			{
-				popup(e);
-			}
+		public void mousePressed(MouseEvent e){}
 		@Override
-		public void mouseReleased(MouseEvent e)
-			{
-				if(!popup(e))
-					{
-						open.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "open", e.getWhen(), e.getModifiers()));
-					}
-			}
+		public void mouseReleased(MouseEvent e){}
 	}

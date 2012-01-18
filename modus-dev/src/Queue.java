@@ -20,6 +20,7 @@ public class Queue extends FetchModus implements ActionListener
 		image_background_bottom = "modi/queue/dockbg.png";
 		image_text = "modi/queue/docktext.png";
 		image_card = "modi/queue/card.png";
+		image_card_back = "modi/queue/back.png";
 		
 		info_image = "modi/queue/modus.png";
 		info_name = "Queue";
@@ -46,10 +47,10 @@ public class Queue extends FetchModus implements ActionListener
 			{
 				if(m.getNextEmptyCard()==null){ m.addCard(); }
 				SylladexCard card = m.getNextEmptyCard();
-				Object o = m.getItem(string);
-				card.setItem(o);
+				SylladexItem item = new SylladexItem(string, m);
+				card.setItem(item);
 				queue.addLast(card);
-				JLabel icon = m.getIconLabelFromObject(o);
+				JLabel icon = m.getIconLabelFromItem(item);
 				icons.add(icon);
 				m.setIcons(fillIcons());
 				card.setIcon(icon);
@@ -62,10 +63,11 @@ public class Queue extends FetchModus implements ActionListener
 	{
 		checkBottomCard();
 		SylladexCard card = m.getNextEmptyCard();
-		card.setItem(o);
+		SylladexItem item = new SylladexItem("ITEM", o, m);
+		card.setItem(item);
 		
 		queue.addFirst(card);
-		JLabel icon = m.getIconLabelFromObject(o);
+		JLabel icon = m.getIconLabelFromItem(item);
 		icons.add(queue.indexOf(card), icon);
 		m.setIcons(fillIcons());
 		card.setIcon(icon);
@@ -97,7 +99,7 @@ public class Queue extends FetchModus implements ActionListener
 		{
 			for(SylladexCard card : queue)
 			{
-				items.add(card.getSaveString());
+				items.add(card.getItem().getSaveString());
 			}
 		}
 		else { items.add(""); }

@@ -17,7 +17,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	
 	private boolean accessible = true;
 	
-	private Object item;
+	private SylladexItem item;
 	
 	private JWindow window;
 	private JLayeredPane box;
@@ -42,6 +42,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		image_background_bottom = "modi/hashmap/dockbg.png";
 		image_text = "modi/hashmap/docktext.png";
 		image_card = "modi/hashmap/card.png";
+		image_card_back = "modi/hashmap/back.png";
 		image_dock_card = "modi/global/dockcard.png";
 		
 		info_image = "modi/hashmap/modus.png";
@@ -101,11 +102,11 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		{
 			if(!string.equals(""))
 			{
-				Object o = m.getItem(string);
 				SylladexCard card = m.getCards().get(i);
-				card.setItem(o);
+				SylladexItem item = new SylladexItem(string, m);
+				card.setItem(item);
 				card.setAccessible(true);
-				JLabel icon = m.getIconLabelFromObject(o);
+				JLabel icon = m.getIconLabelFromItem(item);
 				icons.set(i, icon);
 				card.setIcon(icon);
 				m.setIcons(icons);
@@ -119,10 +120,8 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		ArrayList<String> items = new ArrayList<String>();
 		for(SylladexCard card : m.getCards())
 		{
-			// Can't call getSaveString() twice, so save value in a variable.
-			String savestring = card.getSaveString();
-			if(savestring!=null)
-				items.add(m.getCards().indexOf(card), savestring);
+			if(card.getItem()!=null)
+				items.add(m.getCards().indexOf(card), card.getItem().getSaveString());
 			else
 				items.add("");
 		}
@@ -206,23 +205,6 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		{
 			model.add(0, name.replaceAll(".txt", ""));
 		}
-	}
-	
-	private String getString(Object o)
-	{
-		if(o instanceof File)
-		{
-			return ((File)o).getName().toUpperCase();
-		}
-		else if(o instanceof Image)
-		{
-			return "IMAGE";
-		}
-		else if(o instanceof Widget)
-		{
-			return ((Widget)o).getString().toUpperCase();
-		}
-		else return ((String)o).toUpperCase();
 	}
 
 	private void createBox()
@@ -350,9 +332,17 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			{
 				accessible = false;
 				
-				item = o;
+				if(o instanceof Image)
+				{
+					String name = JOptionPane.showInputDialog("Enter a name for the item:");
+					item = new SylladexItem(name, o, m);
+				}
+				else
+				{
+					item = new SylladexItem("ITEM", o, m);
+				}
 				
-				string = getString(o);
+				string = item.getName().toUpperCase();
 				
 				doWork();
 				
@@ -424,7 +414,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		
 		string = JOptionPane.showInputDialog("");
 		if(string==null){ accessible=true; return; }
-		string = getString(string);
+		string = string.toUpperCase();
 		
 		doWork();
 		
@@ -472,7 +462,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			{
 				c.setItem(item);
 				c.setAccessible(true);
-				JLabel icon = m.getIconLabelFromObject(item);
+				JLabel icon = m.getIconLabelFromItem(item);
 				icons.set(answer, icon);
 				c.setIcon(icon);
 				m.setIcons(icons);

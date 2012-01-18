@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class TreeModus extends FetchModus
 		image_background_bottom = "modi/tree/dock.png";
 		image_text = "modi/tree/text.png";
 		image_card = "modi/tree/card.png";
+		image_card_back = "modi/tree/back.png";
 		image_dock_card = "modi/global/dockcard.png";
 		
 		info_image = "modi/tree/modus.png";
@@ -75,7 +77,7 @@ public class TreeModus extends FetchModus
 			Node current = getRoot();
 			while(node.parent==null)
 			{
-				if(node.card.getItemString().toLowerCase().compareTo(current.card.getItemString().toLowerCase())<0)
+				if(node.card.getItem().getName().toLowerCase().compareTo(current.card.getItem().getName().toLowerCase())<0)
 				{
 					if(current.left==null)
 					{
@@ -87,8 +89,7 @@ public class TreeModus extends FetchModus
 						current = current.left;
 					}
 				}
-				else if(node.card.getItemString().toLowerCase().compareTo(current.card.getItemString().toLowerCase())>=0)
-				{
+				else if(node.card.getItem().getName().toLowerCase().compareTo(current.card.getItem().getName().toLowerCase())>=0)				{
 					if(current.right==null)
 					{
 						current.right = node;
@@ -348,7 +349,7 @@ public class TreeModus extends FetchModus
 			public ArrayList<Animation> buildAnimation(ArrayList<Animation> anims, SylladexCard c)
 			{
 				//Don't animate the root
-				if(c.getItemString().equals(card.getItemString()))
+				if(c.getItem().getName().equals(card.getItem().getName()))
 				{
 					Animation a = new Animation(AnimationType.WAIT,100,null,"run");
 					if(anims.size()>0)
@@ -361,7 +362,7 @@ public class TreeModus extends FetchModus
 				
 				Point p = null;
 				boolean addleft = false;
-				if(c.getItemString().compareToIgnoreCase(card.getItemString())<0)
+				if(c.getItem().getName().compareToIgnoreCase(card.getItem().getName())<0)
 				{
 					//Left
 					p = new Point(x-20,y+20);
@@ -479,15 +480,15 @@ public class TreeModus extends FetchModus
 		{
 			if(line!="")
 			{
-				Object o = m.getItem(line);
 				if(m.getNextEmptyCard()==null){ m.addCard(); }
 				SylladexCard card = m.getNextEmptyCard();
-				card.setItem(o);
+				SylladexItem item = new SylladexItem(line, m);
+				card.setItem(item);
 				
 				if(cards.size()==0){tree = new Tree(card);}
 				else {tree.add(card);}
 				
-				JLabel icon = m.getIconLabelFromObject(o);
+				JLabel icon = m.getIconLabelFromItem(item);
 				icons.add(icon);
 				card.setIcon(icon);
 				cards.add(card);
@@ -541,7 +542,19 @@ public class TreeModus extends FetchModus
 		if(m.getNextEmptyCard()==null)
 			return;
 		SylladexCard card = m.getNextEmptyCard();
-		card.setItem(o);
+		
+		SylladexItem item;
+		if(o instanceof Image)
+		{
+			String name = JOptionPane.showInputDialog("Enter the name of this item:");
+			item = new SylladexItem(name, o, m);
+		}
+		else
+		{
+			item = new SylladexItem("ITEM", o, m);
+		}
+		card.setItem(item);
+		
 		if(cards.size()==0)
 		{
 			tree = new Tree(card);
@@ -553,7 +566,7 @@ public class TreeModus extends FetchModus
 		
 		last = tree.getNodeWithCard(card);
 		
-		JLabel icon = m.getIconLabelFromObject(o);
+		JLabel icon = m.getIconLabelFromItem(item);
 		icons.add(icon);
 		card.setIcon(icon);
 		cards.add(card);
@@ -635,7 +648,7 @@ public class TreeModus extends FetchModus
 		if(tree==null){ return i; }
 		for(SylladexCard card : tree)
 		{
-			i.add(card.getSaveString());
+			i.add(card.getItem().getSaveString());
 		}
 		return i;
 	}

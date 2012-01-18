@@ -30,6 +30,7 @@ public class EncryptionModus extends FetchModus implements KeyListener
 		image_background_bottom = "modi/encryption/dockbg.png";
 		image_text = "modi/encryption/docktext.png";
 		image_card = "modi/encryption/card.png";
+		image_card_back = "modi/encryption/back.png";
 		image_dock_card = "modi/global/dockcard.png";
 		
 		info_image = "modi/encryption/modus.png";
@@ -81,10 +82,10 @@ public class EncryptionModus extends FetchModus implements KeyListener
 			{
 				if(m.getNextEmptyCard()==null) { m.addCard(); }
 				SylladexCard card = m.getNextEmptyCard();
-				Object o = m.getItem(string);
-				card.setItem(o);
+				SylladexItem item = new SylladexItem(string, m);
+				card.setItem(item);
 				cards.add(card);
-				JLabel icon = m.getIconLabelFromObject(o);
+				JLabel icon = m.getIconLabelFromItem(item);
 				icons.add(icon);
 				m.setIcons(icons);
 				card.setIcon(icon);
@@ -108,10 +109,11 @@ public class EncryptionModus extends FetchModus implements KeyListener
 		enabled = false;
 		if(m.getNextEmptyCard()==null){ return; }
 		SylladexCard card = m.getNextEmptyCard();
-		card.setItem(o);
+		SylladexItem item = new SylladexItem("ITEM", o, m);
+		card.setItem(item);
 		
 		cards.add(card);
-		JLabel icon = m.getIconLabelFromObject(o);
+		JLabel icon = m.getIconLabelFromItem(item);
 		icons.add(icon);
 		m.setIcons(icons);
 		card.setIcon(icon);
@@ -192,7 +194,7 @@ public class EncryptionModus extends FetchModus implements KeyListener
 		{
 			for(SylladexCard card : cards)
 			{
-				items.add(card.getSaveString());
+				items.add(card.getItem().getSaveString());
 			}
 		}
 		else { items.add(""); }
