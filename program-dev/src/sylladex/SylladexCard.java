@@ -37,7 +37,6 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	//Alchemy
 	private JWindow reverse;
 	private JLabel flip;
-	private JPanel holes;
 	
 	private JLabel inaccessible;
 	
@@ -75,17 +74,15 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		foreground.setOpaque(false);
 		foreground.setLayout(null);
 		
-		holes = new JPanel();
-		holes.setBounds(0,0,getWidth(),getHeight());
-		holes.setOpaque(false);
-		holes.setLayout(null);
-		
 		cardbg.addMouseListener(this);
 		cardbg.addMouseMotionListener(this);
 		
-		DragListener mouse = new DragListener();
-		cardbg.addMouseListener(mouse);
-		cardbg.addMouseMotionListener(mouse);
+		if(deck.getModus().areCardsDraggable())
+		{
+			DragListener mouse = new DragListener(deck.getCardHolder());
+			cardbg.addMouseListener(mouse);
+			cardbg.addMouseMotionListener(mouse);
+		}
 		
 		pane.setLayer(cardbg, 0);
 		pane.add(cardbg);
@@ -450,6 +447,9 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		pane.add(code);
 		
 		reverse.addMouseListener(this);
+		DragListener rl = new DragListener(reverse);
+		reverse.addMouseListener(rl);
+		reverse.addMouseMotionListener(rl);
 		reverse.add(pane);
 		reverse.setVisible(true);
 	}
@@ -589,15 +589,21 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		int startx = 0;
 		int starty = 0;
 		boolean dragging = false;
+		JWindow window;
+		
+		public DragListener(JWindow window)
+		{
+			this.window = window;
+		}
 		
 		@Override
 		public void mouseDragged(MouseEvent e)
 		{
-			if(dragging && deck.getModus().areCardsDraggable())
+			if(dragging)
 			{
 				int x = e.getXOnScreen();
 				int y = e.getYOnScreen();
-				deck.getCardHolder().setLocation(x-startx, y-starty);
+				window.setLocation(x-startx, y-starty);
 			}
 		}
 		

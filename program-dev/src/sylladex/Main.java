@@ -284,11 +284,6 @@ public class Main implements ActionListener, WindowListener
 		if(!SystemTray.isSupported()){ return; }
 		popup = new PopupMenu();
 		
-		MenuItem alchemy = new MenuItem("Alchemy");
-			alchemy.addActionListener(popuplistener);
-			alchemy.setActionCommand("alchemy");
-		popup.add(alchemy);
-		
 		MenuItem preferences = new MenuItem("Preferences");
 			preferences.addActionListener(popuplistener);
 			preferences.setActionCommand("preferences");
