@@ -30,6 +30,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 				private boolean always_on_top_dock; private JCheckBox aotdock;
 				private boolean usb_mode; private JCheckBox usbmode;
 				private int offset; private JSlider dock_offset;
+				private boolean name_items; private JCheckBox nameitems;
 			//Cards
 				private boolean autohide_cards; private JCheckBox ahcards;
 				private boolean always_on_top_cards; private JCheckBox aotcards;
@@ -168,6 +169,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		always_on_top_dock = Boolean.parseBoolean(preferences.get("always_on_top_dock"));
 		usb_mode = Boolean.parseBoolean(preferences.get("usb_mode"));
 		offset = Integer.parseInt(preferences.get("offset"));
+		name_items = Boolean.parseBoolean(preferences.get("name_items"));
 		
 		autohide_cards = Boolean.parseBoolean(preferences.get("autohide_cards"));
 		always_on_top_cards = Boolean.parseBoolean(preferences.get("always_on_top_cards"));
@@ -183,6 +185,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		String always_on_top_docks = new Boolean(always_on_top_dock).toString();
 		String usb_modes = new Boolean(usb_mode).toString();
 		String offsets = new Integer(offset).toString();
+		String name_itemss = new Boolean(name_items).toString();
 		String autohide_cardss = new Boolean(autohide_cards).toString();
 		String always_on_top_cardss = new Boolean(always_on_top_cards).toString();
 		String copys = new Boolean(copy).toString();
@@ -193,6 +196,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		core_preferences.put("always_on_top_dock", always_on_top_docks);
 		core_preferences.put("usb_mode", usb_modes);
 		core_preferences.put("offset", offsets);
+		core_preferences.put("name_items", name_itemss);
 		core_preferences.put("autohide_cards", autohide_cardss);
 		core_preferences.put("always_on_top_cards", always_on_top_cardss);
 		core_preferences.put("copy", copys);
@@ -211,6 +215,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			bwriter.write("always_on_top_dock:" + core_preferences.get("always_on_top_dock")); bwriter.newLine();
 			bwriter.write("usb_mode:" + core_preferences.get("usb_mode")); bwriter.newLine();
 			bwriter.write("offset:" + core_preferences.get("offset")); bwriter.newLine();
+			bwriter.write("name_items:" + core_preferences.get("name_items")); bwriter.newLine();
 			bwriter.write("autohide_cards:" + core_preferences.get("autohide_cards")); bwriter.newLine();
 			bwriter.write("always_on_top_cards:" + core_preferences.get("always_on_top_cards")); bwriter.newLine();
 			bwriter.write("copy:" + core_preferences.get("copy")); bwriter.newLine();
@@ -312,6 +317,11 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		return offset;
 	}
 	
+	public boolean name_items()
+	{
+		return name_items;
+	}
+	
 	public boolean autohide_cards()
 	{
 		return autohide_cards;
@@ -401,6 +411,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			copybox.addActionListener(this);
 			copybox.setEnabled(false);
 			
+		nameitems = new JCheckBox("Always prompt for image names");
+			nameitems.setSelected(name_items);
+			nameitems.addActionListener(this);
+			
 		ahcards = new JCheckBox("Auto-hide");
 			ahcards.setSelected(autohide_cards);
 			ahcards.addActionListener(this);
@@ -439,6 +453,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		cardpanel.add(ahcards);
 		cardpanel.add(aotcards);
 		
+		miscpanel.add(nameitems);
 		miscpanel.add(usbmode);
 		miscpanel.add(copybox);
 		
@@ -584,6 +599,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		else if(source == aotcards)
 		{
 			always_on_top_cards = aotcards.isSelected();
+		}
+		else if(source == nameitems)
+		{
+			name_items = nameitems.isSelected();
 		}
 		else if(source == usbmode)
 		{

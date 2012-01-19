@@ -332,15 +332,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			{
 				accessible = false;
 				
-				if(o instanceof Image)
-				{
-					String name = JOptionPane.showInputDialog("Enter a name for the item:");
-					item = new SylladexItem(name, o, m);
-				}
-				else
-				{
-					item = new SylladexItem("ITEM", o, m);
-				}
+				item = new SylladexItem("ITEM", o, m);
 				
 				string = item.getName().toUpperCase();
 				

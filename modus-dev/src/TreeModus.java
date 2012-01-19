@@ -1,6 +1,5 @@
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -543,16 +542,8 @@ public class TreeModus extends FetchModus
 			return;
 		SylladexCard card = m.getNextEmptyCard();
 		
-		SylladexItem item;
-		if(o instanceof Image)
-		{
-			String name = JOptionPane.showInputDialog("Enter the name of this item:");
-			item = new SylladexItem(name, o, m);
-		}
-		else
-		{
-			item = new SylladexItem("ITEM", o, m);
-		}
+		SylladexItem item = new SylladexItem("ITEM", o, m);
+		
 		card.setItem(item);
 		
 		if(cards.size()==0)

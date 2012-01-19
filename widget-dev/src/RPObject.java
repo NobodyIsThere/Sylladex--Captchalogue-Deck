@@ -8,7 +8,6 @@ import java.io.File;
 public class RPObject extends Widget implements MouseListener
 {
 	private String string = "RP";
-	private String code = "alternia";
 	private File img;
 	private final JFileChooser image_chooser = new JFileChooser();
 	
@@ -43,8 +42,6 @@ public class RPObject extends Widget implements MouseListener
 		img = new File(savestring.substring(savestring.indexOf(";")+1));
 		if(img.exists())
 			setImages(img);
-		
-		code = Alchemy.generateCode(string);
 	}
 	
 	@Override
@@ -119,7 +116,6 @@ public class RPObject extends Widget implements MouseListener
 	{
 		//Ask for a name
 		string = JOptionPane.showInputDialog("Enter a name for the item.");
-		code = Alchemy.generateCode(string);
 		//Accept an image
 		ImageFileFilter filter = new ImageFileFilter();
 		image_chooser.setFileFilter(filter);

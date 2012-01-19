@@ -8,7 +8,6 @@ import javax.swing.*;
 import sylladex.*;
 import sylladex.Animation.AnimationType;
 
-
 public class EncryptionModus extends FetchModus implements KeyListener
 {
 	private boolean enabled = true;

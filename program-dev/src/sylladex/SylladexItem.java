@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class SylladexItem
@@ -109,6 +110,10 @@ public class SylladexItem
 		else if(contents instanceof Image)
 		{
 			type = ItemType.IMAGE;
+			if(m.getPreferences().name_items())
+			{
+				name = JOptionPane.showInputDialog("Item name:");
+			}
 		}
 		else if(contents instanceof String)
 		{
