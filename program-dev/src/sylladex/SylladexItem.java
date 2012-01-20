@@ -25,6 +25,11 @@ public class SylladexItem
 	
 	private JPanel panel;
 	
+	/**
+	 * Creates a new sylladex item from the given save string.
+	 * @param string - The string to load the item from.
+	 * @param m - The instance of Main to use.
+	 */
 	public SylladexItem(String string, Main m)
 	{
 		this.m = m;
@@ -99,6 +104,13 @@ public class SylladexItem
 		determineNameAndCode();
 	}
 	
+	/**
+	 * Creates a new sylladex item containin the given object. The name given is only used if the item is an image, and the user has
+	 * "always prompt for image names" enabled.
+	 * @param name - The name of the item (not normally used).
+	 * @param contents - The object to be captchalogued.
+	 * @param m - The instance of Main to use.
+	 */
 	public SylladexItem(String name, Object contents, Main m)
 	{
 		this.m = m;
@@ -128,6 +140,9 @@ public class SylladexItem
 		determineNameAndCode();
 	}
 	
+	/**
+	 * @return The panel for use on the sylladex card.
+	 */
 	public JPanel getPanel()
 	{
 		panel = new JPanel();
@@ -176,6 +191,9 @@ public class SylladexItem
 		return panel;
 	}
 
+	/**
+	 * @return A string from which the item may be loaded.
+	 */
 	public String getSaveString()
 	{
 		if(contents instanceof File)
@@ -225,21 +243,33 @@ public class SylladexItem
 		code = Alchemy.generateCode(name);
 	}
 	
+	/**
+	 * @return The item type.
+	 */
 	public ItemType getType()
 	{
 		return type;
 	}
 	
+	/**
+	 * @return The File, Image, String etc. that this SylladexItem represents.
+	 */
 	public Object getContents()
 	{
 		return contents;
 	}
 	
+	/**
+	 * @return The name of the item.
+	 */
 	public String getName()
 	{
 		return name;
 	}
 	
+	/**
+	 * @return This item's CAPTCHA code.
+	 */
 	public String getCode()
 	{
 		return code;

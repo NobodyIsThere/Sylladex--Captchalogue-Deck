@@ -20,6 +20,14 @@ public class Animation implements ActionListener
 	
 	public enum AnimationType { MOVE, BOUNCE, BOUNCE_SPOT, WAIT }
 	
+	/**
+	 * Sets up a new animation.
+	 * @param comp - The component to animate.
+	 * @param finalposition - The final position of the component.
+	 * @param type - The animation type.
+	 * @param listener - An ActionListener to respond when the animation ends.
+	 * @param command - The action command for the listener.
+	 */
 	public Animation(JComponent comp, Point finalposition, AnimationType type, ActionListener listener, String command)
 	{
 		this.comp = comp;
@@ -31,6 +39,14 @@ public class Animation implements ActionListener
 		this.command = command;
 	}
 	
+	/**
+	 * Sets up a new animation.
+	 * @param card - The sylladex card to animate.
+	 * @param finalposition - The final position of the card.
+	 * @param type - The animation type.
+	 * @param listener - An ActionListener to respond when the animation ends.
+	 * @param command - The action command for the listener.
+	 */
 	public Animation(SylladexCard card, Point finalposition, AnimationType type, ActionListener listener, String command)
 	{
 		this.card = card;
@@ -44,6 +60,13 @@ public class Animation implements ActionListener
 	}
 	
 	//Only for WAIT
+	/**
+	 * Sets up a new WAIT animation.
+	 * @param type - AnimationType.WAIT. This is accepted as a parameter for code readability.
+	 * @param duration - The amount of time to wait, in milliseconds.
+	 * @param listener - An ActionListener to call after the timer expires.
+	 * @param command - The action command for the listener.
+	 */
 	public Animation(AnimationType type, int duration, ActionListener listener, String command)
 	{
 		this.type = AnimationType.WAIT;
@@ -54,21 +77,33 @@ public class Animation implements ActionListener
 		timer.setDelay(duration);
 	}
 	
+	/**
+	 * @return The component which is animated by this Animation.
+	 */
 	public JComponent getComponent()
 	{
 		return comp;
 	}
 	
+	/**
+	 * @return The card which is animated by this Animation.
+	 */
 	public SylladexCard getCard()
 	{
 		return card;
 	}
 	
+	/**
+	 * Runs the animation.
+	 */
 	public void run()
 	{
 		timer.restart();
 	}
 	
+	/**
+	 * Aborts the animation and sets the position of the animated component to the final position specified in the constructor.
+	 */
 	public void stop()
 	{
 		timer.stop();
@@ -84,21 +119,43 @@ public class Animation implements ActionListener
 			listener.actionPerformed(f);
 	}
 	
+	/**
+	 * Sets the ActionListener to be called when the animation completes.
+	 * @param listener - The listener to call.
+	 */
 	public void setListener(ActionListener listener)
 	{this.listener = listener;}
 	
+	/**
+	 * Sets the action command which is passed to the listener when the animation completes.
+	 * @param command - The action command.
+	 */
 	public void setActionCommand(String command)
 	{this.command = command;}
 	
+	/**
+	 * Sets the start position for the animation.
+	 * @param startposition
+	 */
 	public void setStartPosition(Point startposition)
 	{this.startposition = startposition;}
 	
+	/**
+	 * @return This animation's start position.
+	 */
 	public Point getStartPosition()
 	{return startposition;}
 	
+	/**
+	 * Sets the end position for the animation.
+	 * @param finalposition
+	 */
 	public void setFinalPosition(Point finalposition)
 	{this.finalposition = finalposition;}
 	
+	/**
+	 * @return - This animation's end position.
+	 */
 	public Point getFinalPosition()
 	{return finalposition;}
 

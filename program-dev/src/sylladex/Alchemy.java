@@ -11,6 +11,11 @@ public final class Alchemy
 	
 	public static enum Mode { AND, OR };
 	
+	/**
+	 * Generates a CAPTCHA code from an item's name.
+	 * @param string - The name of the item.
+	 * @return The CAPTCHA code generated.
+	 */
 	public static String generateCode(String string)
 	{
 		if(string.length() < 3) { return string; }

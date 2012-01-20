@@ -16,6 +16,7 @@ import javax.swing.filechooser.FileSystemView;
 import sun.awt.shell.ShellFolder;
 import com.sun.awt.AWTUtilities;
 
+/** Holds all the cards. Also provides utility functions for the other classes. */
 public class Main implements ActionListener, WindowListener
 {
 	//Should be called "Sylladex", but has to be called "Main".
@@ -243,6 +244,7 @@ public class Main implements ActionListener, WindowListener
 		dock.setVisible(true);
 	}
 	
+	/** Updates the dock position and refreshes the dock icons. */
 	public void refreshDock()
 	{
 		if(prefs.always_on_top_dock() || prefs.autohide_dock())
@@ -411,6 +413,8 @@ public class Main implements ActionListener, WindowListener
 		}
 	}
 	
+	/** Refreshes the dock icons. Icons are separated by a distance of 50 pixels, minus the width of the icons (33 pixels).
+	 * @see setIcons() */
 	public void refreshDockIcons()
 	{
 		iconpane.removeAll();
@@ -438,12 +442,15 @@ public class Main implements ActionListener, WindowListener
 		iconpane.repaint();
 	}
 	
+	/** Sets the icons to be drawn on the dock, then calls {@link refreshDockIcons()}.
+	 * @param newicons The new icons.*/
 	public void setIcons(ArrayList<JLabel> newicons)
 	{
 		icons = newicons;
 		refreshDockIcons();
 	}
 	
+	/** Un-hides the dock. */
 	public void showDock()
 	{
 		if(prefs.top())
@@ -457,6 +464,7 @@ public class Main implements ActionListener, WindowListener
 		d_hidden = false;
 	}
 	
+	/** Hides the dock. */
 	public void hideDock()
 	{
 		if(prefs.top())
@@ -485,6 +493,7 @@ public class Main implements ActionListener, WindowListener
 		cardholder.setVisible(true);
 	}
 	
+	/** Updates the always-on-top status of the card window, and repaints the window.*/
 	public void refreshCardHolder()
 	{
 		if(prefs.always_on_top_cards() || prefs.autohide_cards())
@@ -495,12 +504,16 @@ public class Main implements ActionListener, WindowListener
 		cardholder.repaint();
 	}
 	
+	/** Resizes the card window.
+	 * @param w - width of the window.
+	 * @param h - height of the window.*/
 	public void setCardHolderSize(int w, int h)
 	{
 		cardholder.setSize(w,h);
 		cardholder.repaint();
 	}
 	
+	/** Returns the card window. For advanced use only.*/
 	public JWindow getCardHolder()
 	{
 		return cardholder;
@@ -513,6 +526,7 @@ public class Main implements ActionListener, WindowListener
 		id++;
 	}
 	
+	/** Adds a card to the deck, and refreshes the dock.*/
 	public void addCard()
 	{
 		sylladexcards.add(new SylladexCard(id, this));
@@ -538,7 +552,7 @@ public class Main implements ActionListener, WindowListener
 		return null;
 	}
 	
-	public void addItem(String string)
+	private void addItem(String string)
 	{
 		string = string.replaceAll("http://", "");
 		java.net.URL url = null;
@@ -570,17 +584,17 @@ public class Main implements ActionListener, WindowListener
 		System.out.println("Done!");
 	}
 	
-	public void addItem(Image image)
+	private void addItem(Image image)
 	{
 		modus.addItem(image);
 	}
 	
-	public void addItem(File file)
+	private void addItem(File file)
 	{
 		modus.addItem(file);
 	}
 	
-	public void addItem(Widget widget)
+	private void addItem(Widget widget)
 	{
 		widget.add();
 		modus.addItem(widget);
@@ -619,23 +633,41 @@ public class Main implements ActionListener, WindowListener
 		}
 	}
 	
+	/** Opens the specified sylladex card.
+	 * 
+	 * @param card - The sylladex card to open.
+	 * @see openWithoutRemoval(SylladexCard card)
+	 * */
 	public void open(SylladexCard card)
 	{
 		openCard(card);
 		card.setItem(null);
 	}
 	
+	/** Opens the specified sylladex card, without removing its item from the deck.
+	 * 
+	 * @param card - The sylladex card to open.
+	 * @see open(SylladexCard card)
+	 */
 	public void openWithoutRemoval(SylladexCard card)
 	{
 		openCard(card);
 	}
 	
+	/** Removes the specified card from the deck, without opening its item.
+	 * 
+	 * @param card - The sylladex card to remove.
+	 */
 	public void removeCard(SylladexCard card)
 	{
 		sylladexcards.remove(card);
 		refreshDock();
 	}
 	
+	/** Returns an empty sylladex card, if there are any left in the deck.
+	 * 
+	 * @return An empty sylladex card if one exists, otherwise null.
+	 */
 	public SylladexCard getNextEmptyCard()
 	{
 		for(SylladexCard card : sylladexcards)
@@ -649,6 +681,11 @@ public class Main implements ActionListener, WindowListener
 	}
 	
 	//Utility functions
+	/** Returns the sylladex card with the specified index. This is not a very useful function, in general.
+	 * 
+	 * @param index - the index of the required card
+	 * @return The sylladex card with the specified index.
+	 */
 	public SylladexCard getCardWithIndex(int index)
 	{
 		return sylladexcards.get(index);
@@ -670,6 +707,11 @@ public class Main implements ActionListener, WindowListener
 		return null;
 	}
 	
+	/** Returns the sylladex card at the point specified. The point is measured relative to the card window.
+	 * 
+	 * @param position - The position of the required card's top left corner.
+	 * @return The sylladex card at the specified position.
+	 */
 	public SylladexCard getCardAtPosition(Point position)
 	{
 		for(SylladexCard card : sylladexcards)
@@ -683,31 +725,57 @@ public class Main implements ActionListener, WindowListener
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @return An ArrayList of the cards currently in the deck.
+	 */
 	public ArrayList<SylladexCard> getCards()
 	{
 		return sylladexcards;
 	}
 	
+	/**
+	 * 
+	 * @return The current fetch modus.
+	 */
 	public FetchModus getModus()
 	{
 		return modus;
 	}
 	
+	/**
+	 * 
+	 * @return The size of the screen. On Windows, this is the primary monitor, as far as I can tell.
+	 */
 	public Dimension getScreenSize()
 	{
 		return screensize;
 	}
 	
+	/**
+	 * 
+	 * @return An object containing the program preferences.
+	 */
 	public DeckPreferences getPreferences()
 	{
 		return prefs;
 	}
 	
+	/**
+	 * 
+	 * @return The y-position at which cards are drawn on the dock. This is equal to 10 if the dock is at the top of the screen,
+	 * and 35 if it is at the bottom.
+	 */
 	public int getDockIconYPosition()
 	{
 		if(prefs.top()==true) { return 10; } return 35;
 	}
 	
+	/**
+	 * Creates an ImageIcon from the file at the specified path.
+	 * @param path - the path of the file, relative to SDECK.jar.
+	 * @return An ImageIcon created from the file. If it fails to create an ImageIcon, null is returned.
+	 */
 	public static ImageIcon createImageIcon(String path)
 	{
 		java.net.URL url = null;
@@ -725,6 +793,11 @@ public class Main implements ActionListener, WindowListener
 		return icon;
 	}
 	
+	/**
+	 * Creates a JLabel based on the contents of the SylladexItem. This is what is displayed on the sylladex cards.
+	 * @param item - The item to use.
+	 * @return A JLabel for use on sylladex cards.
+	 */
 	public JLabel getIconLabelFromItem(SylladexItem item)
 	{
 		Object o = item.getContents();
@@ -747,6 +820,11 @@ public class Main implements ActionListener, WindowListener
 		return null;
 	}
 	
+	/** Creates an Icon given a file.
+	 * 
+	 * @param file - the file to use.
+	 * @return The default system icon for the file.
+	 */
 	public static Icon getIconFromFile(File file)
 	{
 		ShellFolder shellFolder;
@@ -769,11 +847,23 @@ public class Main implements ActionListener, WindowListener
 		return icon;
 	}
 	
+	/**
+	 * Creates an icon for use in the dock, given an image.
+	 * @param image - The image to use.
+	 * @return An Icon suitable for use in the dock.
+	 */
 	public static Icon getDockIcon(Image image)
 	{
 		return new ImageIcon(image.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
 	}
 	
+	/**
+	 * Resizes an image, and returns the resulting image as an Icon. The image retains its original aspect ratio.
+	 * @param image - The image to resize.
+	 * @param width - The final width of the image.
+	 * @param height - The final height of the image.
+	 * @return The resized image as an Icon.
+	 */
 	public static Icon getSizedIcon(Image image, int width, int height)
 	{
 		ImageIcon icon = new ImageIcon(image);
@@ -816,6 +906,10 @@ public class Main implements ActionListener, WindowListener
 	}
 	
 	// Transparency
+	/**
+	 * Attempts to make the specified window transparent.
+	 * @param window - The window to make transparent.
+	 */
 	public static void setTransparent(JWindow window)
 	{
 		if (com.sun.awt.AWTUtilities.isTranslucencySupported(com.sun.awt.AWTUtilities.Translucency.PERPIXEL_TRANSLUCENT)
@@ -832,6 +926,10 @@ public class Main implements ActionListener, WindowListener
 		}
 	}
 	
+	/**
+	 * 
+	 * @return Whether or not it is possible to make windows transparent on the current system.
+	 */
 	public static boolean isTransparencySupported()
 	{
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -853,18 +951,27 @@ public class Main implements ActionListener, WindowListener
 		return false;
 	}
 	
+	/**
+	 * @return True if the system is running Windows; false otherwise.
+	 */
 	public static boolean isWindows()
 	{
 		String os = System.getProperty("os.name").toLowerCase();
 		return os.indexOf("win") >= 0;
 	}
 	
+	/**
+	 * @return True if the system is running Mac OS; false otherwise.
+	 */
 	public static boolean isMac()
 	{
 		String os = System.getProperty("os.name").toLowerCase();
 		return os.indexOf("mac") >= 0;
 	}
 	
+	/**
+	 * @return True if the system is running Linux; false otherwise.
+	 */
 	public static boolean isLinux()
 	{
 		String os = System.getProperty("os.name").toLowerCase();

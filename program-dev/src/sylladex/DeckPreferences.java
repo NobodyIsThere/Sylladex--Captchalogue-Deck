@@ -292,41 +292,65 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	}
 	
 	//Access functions
+	/**
+	 * @return True if the dock is set to display at the top of the screen. False otherwise.
+	 */
 	public boolean top()
 	{
 		return top;
 	}
 	
+	/**
+	 * @return True if the dock is set to hide automatically. False otherwise.
+	 */
 	public boolean autohide_dock()
 	{
 		return autohide_dock;
 	}
 	
+	/**
+	 * @return True if the dock is set always to be on top. False otherwise.
+	 */
 	public boolean always_on_top_dock()
 	{
 		return always_on_top_dock;
 	}
 	
+	/**
+	 * @return True if the program is in "USB Mode".
+	 */
 	public boolean usb_mode()
 	{
 		return usb_mode;
 	}
 	
+	/**
+	 * @return The offset of the dock from the top/bottom of the screen.
+	 */
 	public int offset()
 	{
 		return offset;
 	}
 	
+	/**
+	 * @return True if the program asks for the names of images when captchalogued. False otherwise.
+	 */
 	public boolean name_items()
 	{
 		return name_items;
 	}
 	
+	/**
+	 * @return True if the cards are set to auto-hide. False otherwise.
+	 */
 	public boolean autohide_cards()
 	{
 		return autohide_cards;
 	}
 	
+	/**
+	 * @return True if the cards are set always to be on top. False otherwise.
+	 */
 	public boolean always_on_top_cards()
 	{
 		return always_on_top_cards;
@@ -337,16 +361,25 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		return copy;
 	}
 	
+	/**
+	 * @return The modus preferences.
+	 */
 	public ArrayList<String> getModusPreferences()
 	{
 		return modus_preferences;
 	}
 	
+	/**
+	 * @return The captchalogued items.
+	 */
 	public ArrayList<String> getModusItems()
 	{
 		return modus_items;
 	}
 	
+	/**
+	 * @return The current fetch modus.
+	 */
 	public FetchModus getModus()
 	{
 		return modus;
@@ -377,6 +410,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		preferences_frame.setLocationRelativeTo(null);
 	}
 	
+	/**
+	 * Shows the preferences window.
+	 */
 	public void showPreferencesFrame()
 	{
 		preferences_frame.setVisible(true);
@@ -496,6 +532,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	}
 
 	//Modus browser
+	/**
+	 * Shows the modus selection window.
+	 */
 	public void createAndShowModusBrowser()
 	{
 		JFrame browser = new JFrame();

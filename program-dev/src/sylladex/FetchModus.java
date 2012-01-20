@@ -51,6 +51,9 @@ public abstract class FetchModus implements ActionListener
 	protected boolean draggable_cards = true;
 	
 	//Class functions
+	/**
+	 * Called when the modus has been selected. Preferences and items will be available at this point.
+	 */
 	public abstract void prepare();
 	
 	public abstract void addGenericItem(Object o);
