@@ -1,4 +1,3 @@
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -11,6 +10,8 @@ import sylladex.Animation.AnimationType;
 public class TreeModus extends FetchModus
 {
 	private ArrayList<SylladexCard> cards = new ArrayList<SylladexCard>();
+	private FetchModusSettings s;
+	
 	private Tree tree;
 	private Tree.Node last;
 	
@@ -20,32 +21,40 @@ public class TreeModus extends FetchModus
 	public TreeModus(Main m)
 	{
 		this.m = m;
-		image_background_top = "modi/tree/dock_top.png";
-		image_background_bottom = "modi/tree/dock.png";
-		image_text = "modi/tree/text.png";
-		image_card = "modi/tree/card.png";
-		image_card_back = "modi/tree/back.png";
-		image_dock_card = "modi/global/dockcard.png";
-		
-		info_image = "modi/tree/modus.png";
-		info_name = "Tree";
-		info_author = "gumptiousCreator";
-		
-		item_file = "modi/items/tree.txt";
-		prefs_file = "modi/prefs/treeprefs.txt";
-		
-		color_background = new Color(150, 255, 0);
-		
-		startcards = 8;
-		origin = new Point(21,120);
-		draw_default_dock_icons = true;
-		draw_empty_cards = false;
-		shade_inaccessible_cards = false;
-		
-		card_width = 94;
-		card_height = 119;
-		
+		createModusSettings();
 		icons = new ArrayList<JLabel>();
+	}
+	
+	private void createModusSettings()
+	{
+		s = new FetchModusSettings();
+		
+		s.set_bottom_dock_image("modi/tree/dock.png");
+		s.set_top_dock_image("modi/tree/dock_top.png");
+		s.set_dock_text_image("modi/tree/docktext.png");
+		s.set_card_image("modi/tree/card.png");
+		s.set_card_back_image("modi/tree/back.png");
+		
+		s.set_modus_image("modi/tree/modus.png");
+		s.set_name("Tree");
+		s.set_author("gumptiousCreator");
+		
+		s.set_item_file("modi/items/tree.txt");
+		s.set_preferences_file("modi/prefs/treeprefs.txt");
+		
+		s.set_background_color(150, 255, 0);
+		
+		s.set_initial_card_number(8);
+		s.set_origin(20, 120);
+		
+		s.set_card_size(94, 119);
+		
+		s.set_shade_inaccessible_cards(false);
+	}
+	
+	public FetchModusSettings getModusSettings()
+	{
+		return s;
 	}
 	
 	enum PrefLabels
@@ -146,6 +155,9 @@ public class TreeModus extends FetchModus
 			private Node parent = null;
 			public int x;
 			public int y;
+			
+			private int card_width = s.get_card_width();
+			private int card_height = s.get_card_height();
 			
 			public Node(SylladexCard card)
 			{
@@ -592,7 +604,7 @@ public class TreeModus extends FetchModus
 				card.setLayer(node.getY()+node.getX());
 		}
 		if(tree!=null)
-		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + card_width, tree.getHeight()*card_height + card_height); }
+		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + s.get_card_width(), tree.getHeight()*s.get_card_height() + s.get_card_height()); }
 		m.refreshCardHolder();
 	}
 	

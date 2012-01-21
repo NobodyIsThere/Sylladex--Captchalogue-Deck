@@ -154,8 +154,8 @@ public class SylladexItem
 		{
 			Icon icon = Main.getIconFromFile((File)contents);
 			cardicon = new JLabel(name);
-			cardicon.setBounds(15*m.getModus().getCardWidth()/148,35*m.getModus().getCardHeight()/94,
-								24*m.getModus().getCardWidth()/37,82*m.getModus().getCardHeight()/188);
+			cardicon.setBounds(15*m.getModusSettings().get_card_width()/148,35*m.getModusSettings().get_card_height()/94,
+								24*m.getModusSettings().get_card_width()/37,82*m.getModusSettings().get_card_height()/188);
 			cardicon.setIcon(icon);
 			cardicon.setHorizontalAlignment(JLabel.CENTER);
 			cardicon.setVerticalAlignment(JLabel.TOP);
@@ -165,8 +165,8 @@ public class SylladexItem
 		else if(contents instanceof Image)
 		{
 			cardicon = new JLabel();
-			cardicon.setBounds(15*m.getModus().getCardWidth()/148,60*m.getModus().getCardHeight()/188,
-								24*m.getModus().getCardWidth()/37,100*m.getModus().getCardHeight()/188);
+			cardicon.setBounds(15*m.getModusSettings().get_card_width()/148,60*m.getModusSettings().get_card_height()/188,
+								24*m.getModusSettings().get_card_width()/37,100*m.getModusSettings().get_card_height()/188);
 			Icon icon = Main.getSizedIcon((Image)contents, cardicon.getWidth(), cardicon.getHeight());
 			cardicon.setIcon(icon);
 			cardicon.setHorizontalAlignment(JLabel.CENTER);
@@ -175,14 +175,14 @@ public class SylladexItem
 		else if(contents instanceof String)
 		{
 			cardicon = new JLabel("<HTML>" + (String)contents + "</HTML>");
-			cardicon.setBounds(15*m.getModus().getCardWidth()/148,60*m.getModus().getCardHeight()/188,
-								24*m.getModus().getCardWidth()/37,100*m.getModus().getCardHeight()/188);
+			cardicon.setBounds(15*m.getModusSettings().get_card_width()/148,60*m.getModusSettings().get_card_height()/188,
+								24*m.getModusSettings().get_card_width()/37,100*m.getModusSettings().get_card_height()/188);
 		}
 		else if(contents instanceof Widget)
 		{
 			JPanel widgetpanel = ((Widget)contents).getPanel();
-			widgetpanel.setBounds(15*m.getModus().getCardWidth()/148,60*m.getModus().getCardHeight()/188,
-									24*m.getModus().getCardWidth()/37,100*m.getModus().getCardHeight()/188);
+			widgetpanel.setBounds(15*m.getModusSettings().get_card_width()/148,60*m.getModusSettings().get_card_height()/188,
+									24*m.getModusSettings().get_card_width()/37,100*m.getModusSettings().get_card_height()/188);
 			panel.add(widgetpanel);
 			return panel;
 		}

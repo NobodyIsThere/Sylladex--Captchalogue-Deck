@@ -45,7 +45,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		this.id = id;
 		this.deck = deck;
 		populateAvatar();
-		if(deck.getModus().draw_empty_cards)
+		if(deck.getModusSettings().draw_empty_cards())
 		{
 			addToCardHolder();
 		}
@@ -58,10 +58,10 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		panel.setOpaque(false);
 		pane = new JLayeredPane();
 		pane.setLayout(null);
-		ImageIcon cardbgimage = Main.createImageIcon(deck.getModus().getCardBgUrl());
+		ImageIcon cardbgimage = Main.createImageIcon(deck.getModusSettings().get_card_image());
 		JLabel cardbg = new JLabel(cardbgimage);
 		cardbg.setBounds(0,0,getWidth(),getHeight());
-		flip = new JLabel(Main.createImageIcon(deck.getModus().getFlipButtonBgUrl()));
+		flip = new JLabel(Main.createImageIcon(deck.getModusSettings().get_flip_button_image()));
 		flip.setBounds(getWidth()-10,getHeight()-10,5,5);
 		flip.setVisible(false);
 		flip.addMouseListener(this);
@@ -74,7 +74,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		foreground.setOpaque(false);
 		foreground.setLayout(null);
 		
-		if(deck.getModus().areCardsDraggable())
+		if(deck.getModusSettings().are_cards_draggable())
 		{
 			DragListener mouse = new DragListener(deck.getCardHolder());
 			cardbg.addMouseListener(mouse);
@@ -129,7 +129,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 			pane.setLayer(itempanel, 1);
 			
 			pane.add(itempanel);
-			if(!deck.getModus().draw_empty_cards) { addToCardHolder(); }
+			if(!deck.getModusSettings().draw_empty_cards()) { addToCardHolder(); }
 			
 			if(item.getContents() instanceof Widget)
 			{
@@ -139,7 +139,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		else
 		{
 			pane.remove(itempanel);
-			if(!deck.getModus().draw_empty_cards) { removeFromCardHolder(); }
+			if(!deck.getModusSettings().draw_empty_cards()) { removeFromCardHolder(); }
 		}
 		deck.refreshDockIcons();
 	}
@@ -198,18 +198,18 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	
 	public int getWidth()
 	{
-		return deck.getModus().getCardWidth();
+		return deck.getModusSettings().get_card_width();
 	}
 	
 	public int getHeight()
 	{
-		return deck.getModus().getCardHeight();
+		return deck.getModusSettings().get_card_height();
 	}
 	
 	public void setAccessible(boolean accessible)
 	{
 		this.accessible = accessible;
-		if(deck.getModus().shade_inaccessible_cards)
+		if(deck.getModusSettings().shade_inaccessible_cards())
 		{
 			if(!accessible && pane.getComponentCountInLayer(100)==0)
 			{ pane.add(inaccessible); }
@@ -239,7 +239,7 @@ public class SylladexCard implements MouseInputListener, ActionListener
 		pane.setBounds(0,0,148,188);
 		pane.setLayout(null);
 		
-		JLabel background = new JLabel(Main.createImageIcon(deck.getModus().getCardBackBgUrl()));
+		JLabel background = new JLabel(Main.createImageIcon(deck.getModusSettings().get_card_back_image()));
 		background.setBounds(0,0,148,188);
 		pane.setLayer(background, 0);
 		pane.add(background);

@@ -24,6 +24,7 @@ public class Main implements ActionListener, WindowListener
 	
 	private DeckPreferences prefs;
 	private FetchModus modus;
+	private FetchModusSettings modus_settings;
 	private ArrayList<SylladexCard> sylladexcards = new ArrayList<SylladexCard>();
 	private ArrayList<JLabel> icons = new ArrayList<JLabel>();
 	
@@ -74,11 +75,13 @@ public class Main implements ActionListener, WindowListener
 			//TODO: We can't continue without preferences.
 		}
 		modus = prefs.getModus();
+		modus_settings = modus.getModusSettings();
+		
 		modus.setPreferences(prefs.getModusPreferences());
 		modus.setItems(prefs.getModusItems());
 		id = 0;
 		createCardHolder();
-		while(sylladexcards.size()<modus.startcards)
+		while(sylladexcards.size()<modus_settings.get_initial_card_number())
 		{
 			addCardWithoutRefresh();
 		}
@@ -106,6 +109,7 @@ public class Main implements ActionListener, WindowListener
 	{
 		icons = new ArrayList<JLabel>();
 		modus = m;
+		modus_settings = m.getModusSettings();
 		modus.setPreferences(prefs.getModusPreferences());
 		modus.setItems(prefs.getModusItems());
 		id = 0;
@@ -113,7 +117,7 @@ public class Main implements ActionListener, WindowListener
 		cardholder.setVisible(false);
 		cardholder.dispose();
 		createCardHolder();
-		while(sylladexcards.size()<modus.startcards)
+		while(sylladexcards.size()<modus_settings.get_initial_card_number())
 		{ addCardWithoutRefresh(); }
 		refreshDock();
 		modus.prepare();
@@ -254,7 +258,7 @@ public class Main implements ActionListener, WindowListener
 		
 		refreshSystemTray();
 		
-		dock.setIconImage(createImageIcon(modus.image_card).getImage());
+		dock.setIconImage(createImageIcon(modus_settings.get_card_image()).getImage());
 		deckwidth = screensize.width;
 		dock.setSize(new Dimension(deckwidth,100));
 		hideDock();
@@ -267,7 +271,7 @@ public class Main implements ActionListener, WindowListener
 		addComponentsToDock();
 		pane.validate();
 		
-		if(modus.drawDefaultDockIcons())
+		if(modus_settings.draw_default_dock_icons())
 		{
 			drawDefaultDockIcons();
 		}
@@ -315,17 +319,17 @@ public class Main implements ActionListener, WindowListener
 		if(prefs.top()==true)
 		{
 			textoffset = 21;
-			bgpath = getModus().getTopBgUrl();
+			bgpath = modus_settings.get_top_dock_image();
 		}
 		else
 		{
 			textoffset = 94;
-			bgpath = getModus().getBottomBgUrl();
+			bgpath = modus_settings.get_bottom_dock_image();
 		}
 		
 		//Background image
 		ImageIcon dockbgimage = createImageIcon(bgpath);
-		ImageIcon docktextimage = createImageIcon(getModus().getTextUrl());
+		ImageIcon docktextimage = createImageIcon(modus_settings.get_dock_text_image());
 		int x = 0;
 		while(x<deckwidth)
 		{
@@ -370,7 +374,7 @@ public class Main implements ActionListener, WindowListener
 	private void drawDefaultDockIcons()
 	{
 		int numcards = sylladexcards.size();
-		ImageIcon cardbg = createImageIcon(getModus().getDockCardBg());
+		ImageIcon cardbg = createImageIcon(modus_settings.get_dock_card_image());
 		int x;
 		int y;
 		int i = 0;
@@ -420,7 +424,7 @@ public class Main implements ActionListener, WindowListener
 		iconpane.removeAll();
 		int x;
 		int y;
-		if(modus.drawDefaultDockIcons())
+		if(modus_settings.draw_default_dock_icons())
 		{
 			if(sylladexcards.size() < deckwidth/50)
 			{ x = deckwidth/2 - sylladexcards.size()*25; }
@@ -480,7 +484,7 @@ public class Main implements ActionListener, WindowListener
 		cardholder = new JWindow();
 		cardpane = new JLayeredPane();
 		cardholder.setLayeredPane(cardpane);
-		cardholder.setLocation(modus.getOrigin());
+		cardholder.setLocation(modus_settings.get_origin());
 		
 		setTransparent(cardholder);
 		
@@ -726,7 +730,6 @@ public class Main implements ActionListener, WindowListener
 	}
 	
 	/**
-	 * 
 	 * @return An ArrayList of the cards currently in the deck.
 	 */
 	public ArrayList<SylladexCard> getCards()
@@ -735,7 +738,6 @@ public class Main implements ActionListener, WindowListener
 	}
 	
 	/**
-	 * 
 	 * @return The current fetch modus.
 	 */
 	public FetchModus getModus()
@@ -743,8 +745,12 @@ public class Main implements ActionListener, WindowListener
 		return modus;
 	}
 	
+	protected FetchModusSettings getModusSettings()
+	{
+		return modus_settings;
+	}
+	
 	/**
-	 * 
 	 * @return The size of the screen. On Windows, this is the primary monitor, as far as I can tell.
 	 */
 	public Dimension getScreenSize()

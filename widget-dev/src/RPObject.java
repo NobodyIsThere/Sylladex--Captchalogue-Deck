@@ -25,8 +25,8 @@ public class RPObject extends Widget implements MouseListener
 	private void setImages(File img)
 	{
 		ImageIcon icon = Main.createImageIcon(img.getPath());
-		int cardwidth = m.getModus().getCardWidth();
-		int cardheight = m.getModus().getCardHeight();
+		int cardwidth = m.getModus().getModusSettings().get_card_width();
+		int cardheight = m.getModus().getModusSettings().get_card_height();
 		Icon image = Main.getSizedIcon(icon.getImage(), 24*cardwidth/37, 100*cardheight/188);
 		JLabel image_label = new JLabel(image);
 		image_label.setBounds(0, 0, 24*cardwidth/37, 100*cardheight/188);

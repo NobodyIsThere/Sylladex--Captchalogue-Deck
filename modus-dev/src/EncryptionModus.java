@@ -10,6 +10,8 @@ import sylladex.Animation.AnimationType;
 
 public class EncryptionModus extends FetchModus implements KeyListener
 {
+	private FetchModusSettings s;
+	
 	private boolean enabled = true;
 	private boolean openenabled = true;
 	private ArrayList<SylladexCard> cards;
@@ -25,32 +27,40 @@ public class EncryptionModus extends FetchModus implements KeyListener
 	public EncryptionModus(Main m)
 	{
 		this.m = m;
-		image_background_top = "modi/encryption/dockbg_top.png";
-		image_background_bottom = "modi/encryption/dockbg.png";
-		image_text = "modi/encryption/docktext.png";
-		image_card = "modi/encryption/card.png";
-		image_card_back = "modi/encryption/back.png";
-		image_dock_card = "modi/global/dockcard.png";
-		
-		info_image = "modi/encryption/modus.png";
-		info_name = "Encryption";
-		info_author = "gumptiousCreator";
-		
-		item_file = "modi/items/queuestack.txt";
-		prefs_file = "modi/prefs/encryptionprefs.txt";
-		
-		color_background = new Color(75, 75, 75);
-		
-		startcards = 12;
-		origin = new Point(20,120);
-		draw_default_dock_icons = true;
-		
-		draggable_cards = false;
-		
-		card_width = 94;
-		card_height = 120;
-		
+		createModusSettings();
 		icons = new ArrayList<JLabel>();
+	}
+	
+	private void createModusSettings()
+	{
+		s = new FetchModusSettings();
+		
+		s.set_bottom_dock_image("modi/encryption/dockbg.png");
+		s.set_top_dock_image("modi/encryption/dockbg_top.png");
+		s.set_dock_text_image("modi/encryption/docktext.png");
+		s.set_card_image("modi/encryption/card.png");
+		s.set_card_back_image("modi/encryption/back.png");
+		
+		s.set_modus_image("modi/encryption/modus.png");
+		s.set_name("Encryption");
+		s.set_author("gumptiousCreator");
+		
+		s.set_item_file("modi/items/queuestack.txt");
+		s.set_preferences_file("modi/prefs/encryptionprefs.txt");
+		
+		s.set_background_color(75, 75, 75);
+		
+		s.set_initial_card_number(12);
+		s.set_origin(20, 120);
+		
+		s.set_cards_draggable(false);
+		
+		s.set_card_size(94, 120);
+	}
+	
+	public FetchModusSettings getModusSettings()
+	{
+		return s;
 	}
 	
 	@Override
@@ -59,7 +69,7 @@ public class EncryptionModus extends FetchModus implements KeyListener
 		cards = new ArrayList<SylladexCard>();
 		
 		window = new JWindow();
-		window.setBounds(origin.x,origin.y,132,m.getScreenSize().height);
+		window.setBounds(getModusSettings().get_origin().x,getModusSettings().get_origin().y,132,m.getScreenSize().height);
 		window.setLayout(null);
 		window.setAlwaysOnTop(true);
 		Main.setTransparent(window);
@@ -210,7 +220,7 @@ public class EncryptionModus extends FetchModus implements KeyListener
 			pane.revalidate();
 			pane.repaint();
 			
-			JLabel cardbg = new JLabel(Main.createImageIcon(image_card));
+			JLabel cardbg = new JLabel(Main.createImageIcon(getModusSettings().get_card_image()));
 			cardbg.setBounds(0,0,94,120);
 			pane.setLayer(cardbg, 0);
 			pane.add(cardbg);

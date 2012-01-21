@@ -16,6 +16,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	private JLabel preview;
 	private JLabel author;
 	private FetchModus modus;
+	private FetchModusSettings msettings;
 	
 	private Main m;
 	
@@ -60,6 +61,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			ClassLoader cl = new URLClassLoader(urls);
 			Class<?> custom_modus = cl.loadClass(fetchmodus);
 			modus = (FetchModus) custom_modus.getConstructor(m.getClass()).newInstance(m);
+			msettings = modus.getModusSettings();
 			loadItems();
 		}
 		catch (MalformedURLException e)
@@ -91,6 +93,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		try
 		{
 			modus = c.getConstructor(m.getClass()).newInstance(m);
+			msettings = modus.getModusSettings();
 		}
 		catch (IllegalArgumentException e){e.printStackTrace();}
 		catch (SecurityException e){e.printStackTrace();}
@@ -136,8 +139,8 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	{
 		modus_preferences = new ArrayList<String>();
 		
-		File modus_item_file = new File(modus.item_file);
-		File modus_file = new File(modus.prefs_file);
+		File modus_item_file = new File(msettings.get_item_file());
+		File modus_file = new File(msettings.get_preferences_file());
 		
 		Scanner itemscanner = null;
 		Scanner prefscanner = null;
@@ -222,7 +225,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			bwriter.write("fetchmodus:" + core_preferences.get("fetchmodus"));
 			bwriter.close();
 			
-			writer = new FileWriter(modus.prefs_file);
+			writer = new FileWriter(msettings.get_preferences_file());
 			bwriter = new BufferedWriter(writer);
 			for(String string : modus_preferences)
 			{
@@ -230,7 +233,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			}
 			bwriter.close();
 			
-			writer = new FileWriter(modus.item_file);
+			writer = new FileWriter(msettings.get_item_file());
 			bwriter = new BufferedWriter(writer);
 			for(String string : modus_items)
 			{
@@ -391,10 +394,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		preferences_frame = new JFrame();
 		preferences_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		preferences_frame.addWindowListener(this);
-		preferences_frame.setIconImage(Main.createImageIcon(modus.image_card).getImage());
+		preferences_frame.setIconImage(Main.createImageIcon(msettings.get_card_image()).getImage());
 		JTabbedPane tabbedpane = new JTabbedPane();
 		
-		preferences_frame.setBackground(modus.getBackgroundColour());
+		preferences_frame.setBackground(msettings.get_background_color());
 		
 		populateSylladexPanel();
 		populateModusPanel();
@@ -676,10 +679,14 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		Icon smallimage;
 		ImageIcon largeimage;
 		FetchModus mymodus;
+		FetchModusSettings mymsettings;
+		
 		public ModusThumbnail(FetchModus mod)
 		{
 			mymodus = mod;
-			largeimage = Main.createImageIcon(mymodus.info_image);
+			mymsettings = mymodus.getModusSettings();
+			
+			largeimage = Main.createImageIcon(mymsettings.get_modus_image());
 			smallimage = Main.getSizedIcon(largeimage.getImage(), 100, 127);
 			label = new JLabel(smallimage);
 			label.setHorizontalAlignment(JLabel.LEFT);
@@ -688,7 +695,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			if(modus.getClass().getSimpleName().equals(mymodus.getClass().getSimpleName()))
 			{
 				preview.setIcon(largeimage);
-				author.setText(mymodus.info_author);
+				author.setText(mymsettings.get_author());
 			}
 		}
 
@@ -711,7 +718,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			
 			preview.setIcon(largeimage);
 			preview.repaint();
-			author.setText(mymodus.info_author);
+			author.setText(mymsettings.get_author());
 		}
 
 		@Override

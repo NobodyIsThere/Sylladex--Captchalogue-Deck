@@ -10,32 +10,44 @@ public class Queue extends FetchModus implements ActionListener
 {
 	//Queue stuff
 	private LinkedList<SylladexCard> queue = new LinkedList<SylladexCard>();
+	private FetchModusSettings s;
+	
 	private JLabel arrow;
 	private Timer timer = new Timer(1000, this);
 	
 	public Queue(Main m)
 	{
 		this.m = m;
-		image_background_top = "modi/queue/dockbg_top.png";
-		image_background_bottom = "modi/queue/dockbg.png";
-		image_text = "modi/queue/docktext.png";
-		image_card = "modi/queue/card.png";
-		image_card_back = "modi/queue/back.png";
-		
-		info_image = "modi/queue/modus.png";
-		info_name = "Queue";
-		info_author = "gumptiousCreator";
-		prefs_file = "modi/prefs/queueprefs.txt";
-		
-		color_background = new Color(255, 96, 0);
-		
-		startcards = 4;
-		origin = new Point(21,120);
-		draw_default_dock_icons = true;
-		card_width = 148;
-		card_height = 188;
-		
+		createModusSettings();
 		icons = new ArrayList<JLabel>();
+	}
+	
+	private void createModusSettings()
+	{
+		s = new FetchModusSettings();
+		
+		s.set_bottom_dock_image("modi/queue/dockbg.png");
+		s.set_top_dock_image("modi/queue/dockbg_top.png");
+		s.set_dock_text_image("modi/queue/docktext.png");
+		s.set_card_image("modi/queue/card.png");
+		s.set_card_back_image("modi/queue/back.png");
+		
+		s.set_modus_image("modi/queue/modus.png");
+		s.set_name("Queue");
+		s.set_author("gumptiousCreator");
+		
+		s.set_item_file("modi/items/queuestack.txt");
+		s.set_preferences_file("modi/prefs/queueprefs.txt");
+		
+		s.set_background_color(255, 96, 0);
+		
+		s.set_initial_card_number(4);
+		s.set_origin(20, 120);
+	}
+	
+	public FetchModusSettings getModusSettings()
+	{
+		return s;
 	}
 	
 	@Override
@@ -144,7 +156,7 @@ public class Queue extends FetchModus implements ActionListener
 		}
 		if(queue.size()!=0)
 			queue.getLast().setAccessible(true);
-		m.setCardHolderSize(queue.size()*23 + 2*card_width, queue.size()*10 + card_height);
+		m.setCardHolderSize(queue.size()*23 + 2*s.get_card_width(), queue.size()*10 + s.get_card_height());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -173,9 +185,9 @@ public class Queue extends FetchModus implements ActionListener
 			if(queue.size()>1)
 			{
 				SylladexCard card = queue.getLast();
-				Point destination = new Point((queue.indexOf(card)-1)*19 + card_width, card.getPosition().y);
+				Point destination = new Point((queue.indexOf(card)-1)*19 + s.get_card_width(), card.getPosition().y);
 				if(!card.getPosition().equals(destination))
-				{ card.setPosition(new Point((queue.indexOf(card)-1)*19 + card_width, card.getPosition().y)); }
+				{ card.setPosition(new Point((queue.indexOf(card)-1)*19 + s.get_card_width(), card.getPosition().y)); }
 			}
 		}
 		else if(e.getActionCommand().equals("card mouse exit"))

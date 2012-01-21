@@ -10,23 +10,37 @@ public class StackModus extends FetchModus implements ActionListener
 {
 	//Stack stuff
 	private LinkedList<SylladexCard> stack = new LinkedList<SylladexCard>();
+	private FetchModusSettings s;
+	
 	private JLabel arrow;
 	private Timer timer = new Timer(1000, this);
 	
 	public StackModus(Main m)
 	{
 		this.m = m;
-		
-		info_image = "modi/stack/modus.png";
-		info_name = "Stack";
-		info_author = "gumptiousCreator";
-		color_background = new Color(255, 6, 124);
-		prefs_file = "modi/prefs/stackprefs.txt";
-		
-		startcards = 4;
-		origin = new Point(21,120);
-		
+		createModusSettings();
 		icons = new ArrayList<JLabel>();
+	}
+	
+	private void createModusSettings()
+	{
+		s = new FetchModusSettings();
+		
+		s.set_name("Stack");
+		s.set_author("gumptiousCreator");
+		
+		s.set_item_file("modi/items/queuestack.txt");
+		s.set_preferences_file("modi/prefs/stackprefs.txt");
+		
+		s.set_background_color(255, 6, 124);
+		
+		s.set_initial_card_number(4);
+		s.set_origin(20, 120);
+	}
+	
+	public FetchModusSettings getModusSettings()
+	{
+		return s;
 	}
 	
 	//Inherited methods
@@ -136,7 +150,7 @@ public class StackModus extends FetchModus implements ActionListener
 		}
 		if(stack.size()!=0)
 			stack.getFirst().setAccessible(true);
-		m.setCardHolderSize(stack.size()*23 + card_width, stack.size()*23 + card_height);
+		m.setCardHolderSize(stack.size()*23 + s.get_card_width(), stack.size()*23 + s.get_card_height());
 	}
 
 	@Override

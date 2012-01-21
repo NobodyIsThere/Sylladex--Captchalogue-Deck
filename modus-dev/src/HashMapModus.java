@@ -15,6 +15,8 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 {
 	private HashMap<String,Integer> map;
 	
+	private FetchModusSettings s;
+	
 	private boolean accessible = true;
 	
 	private SylladexItem item;
@@ -38,41 +40,46 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	public HashMapModus(Main m)
 	{
 		this.m = m;
-		image_background_top = "modi/hashmap/dockbg_top.png";
-		image_background_bottom = "modi/hashmap/dockbg.png";
-		image_text = "modi/hashmap/docktext.png";
-		image_card = "modi/hashmap/card.png";
-		image_card_back = "modi/hashmap/back.png";
-		image_dock_card = "modi/global/dockcard.png";
-		
-		info_image = "modi/hashmap/modus.png";
-		info_name = "Hashmap";
-		info_author = "gumptiousCreator";
-		
-		item_file = "modi/items/hashmap.txt";
-		prefs_file = "modi/prefs/hashmapprefs.txt";
-		
-		color_background = new Color(255, 255, 0);
-		
-		startcards = 10;
-		origin = new Point(-123,120);
-		draw_default_dock_icons = true;
-		draw_empty_cards = true;
-		shade_inaccessible_cards = false;
-		
-		draggable_cards = false;
-		
-		card_width = 148;
-		card_height = 188;
-		
+		createModusSettings();
 		icons = new ArrayList<JLabel>();
+	}
+	
+	private void createModusSettings()
+	{
+		s = new FetchModusSettings();
+		
+		s.set_bottom_dock_image("modi/hashmap/dockbg.png");
+		s.set_top_dock_image("modi/hashmap/dockbg_top.png");
+		s.set_dock_text_image("modi/hashmap/docktext.png");
+		s.set_card_image("modi/hashmap/card.png");
+		s.set_card_back_image("modi/hashmap/back.png");
+		
+		s.set_modus_image("modi/hashmap/modus.png");
+		s.set_name("Hashmap");
+		s.set_author("gumptiousCreator");
+		
+		s.set_item_file("modi/items/hashmap.txt");
+		s.set_preferences_file("modi/prefs/hashmapprefs.txt");
+		
+		s.set_background_color(255, 255, 0);
+		
+		s.set_initial_card_number(10);
+		s.set_origin(-123, 120);
+		
+		s.set_cards_draggable(false);
+		s.set_draw_empty_cards(true);
+	}
+	
+	public FetchModusSettings getModusSettings()
+	{
+		return s;
 	}
 	
 	public void prepare()
 	{
 		// Exclamation mark icon
 		collisionicon = new JLabel(Main.createImageIcon("modi/hashmap/collision.gif"));
-		collisionicon.setBounds(0,0,card_width,card_height);
+		collisionicon.setBounds(0,0,s.get_card_width(),s.get_card_height());
 		
 		// Fill icons with blank labels
 		if(icons.size()<m.getCards().size())
@@ -424,7 +431,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			card.setPosition(new Point(0,41*i));
 			card.setLayer(i);
 		}
-		m.setCardHolderSize(card_width*2 + 5, m.getScreenSize().height);
+		m.setCardHolderSize(s.get_card_width()*2 + 5, m.getScreenSize().height);
 	}
 	
 	@Override
@@ -483,7 +490,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		else if(e.getActionCommand().equals("card mouse enter"))
 		{
 			SylladexCard card = (SylladexCard)e.getSource();
-			card.setPosition(new Point(card_width-25, card.getPosition().y));
+			card.setPosition(new Point(s.get_card_width()-25, card.getPosition().y));
 		}
 		else if(e.getActionCommand().equals("card mouse exit"))
 		{
