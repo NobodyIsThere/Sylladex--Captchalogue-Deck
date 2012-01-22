@@ -800,7 +800,7 @@ public class Main implements ActionListener, WindowListener
 	}
 	
 	/**
-	 * Creates a JLabel based on the contents of the SylladexItem. This is what is displayed on the sylladex cards.
+	 * Creates a JLabel based on the contents of the SylladexItem. This can be used to create a dock icon from a SylladexIcon.
 	 * @param item - The item to use.
 	 * @return A JLabel for use on sylladex cards.
 	 */
