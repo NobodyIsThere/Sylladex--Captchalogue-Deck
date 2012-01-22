@@ -68,6 +68,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		
 		s.set_cards_draggable(false);
 		s.set_draw_empty_cards(true);
+		s.set_shade_inaccessible_cards(false);
 	}
 	
 	public FetchModusSettings getModusSettings()

@@ -121,9 +121,9 @@ public class SylladexCard implements MouseInputListener, ActionListener
 	
 	public void setItem(SylladexItem item)
 	{
+		this.item = item;
 		if(item!=null)
 		{
-			this.item = item;
 			itempanel = item.getPanel();
 			itempanel.setBounds(0,0,getWidth(),getHeight());
 			pane.setLayer(itempanel, 1);
