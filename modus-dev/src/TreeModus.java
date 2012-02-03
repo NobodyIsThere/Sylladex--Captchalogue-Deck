@@ -31,7 +31,7 @@ public class TreeModus extends FetchModus
 		
 		s.set_bottom_dock_image("modi/tree/dock.png");
 		s.set_top_dock_image("modi/tree/dock_top.png");
-		s.set_dock_text_image("modi/tree/docktext.png");
+		s.set_dock_text_image("modi/tree/text.png");
 		s.set_card_image("modi/tree/card.png");
 		s.set_card_back_image("modi/tree/back.png");
 		
