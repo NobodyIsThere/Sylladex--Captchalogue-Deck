@@ -43,6 +43,8 @@ public class Main implements ActionListener, WindowListener
 	
 	private Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 	
+	private JLabel captchalogue_button;
+	
 	private DockListener docklistener = new DockListener();
 	private CardListener cardlistener = new CardListener();
 	private Timer dautohide_timer = new Timer(500, this);
@@ -167,7 +169,6 @@ public class Main implements ActionListener, WindowListener
 				else if(ts.isDataFlavorSupported(DataFlavor.stringFlavor))
 				{
 					String string = (String)t.getTransferData(DataFlavor.stringFlavor);
-					System.out.println("Data: " + string);
 					addItem(string);
 				}
 				else if(ts.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
@@ -330,6 +331,7 @@ public class Main implements ActionListener, WindowListener
 		//Background image
 		ImageIcon dockbgimage = createImageIcon(bgpath);
 		ImageIcon docktextimage = createImageIcon(modus_settings.get_dock_text_image());
+		
 		int x = 0;
 		while(x<deckwidth)
 		{
@@ -357,6 +359,13 @@ public class Main implements ActionListener, WindowListener
 		pane.setLayer(docktext, 100);
 		docktext.setBounds(10,100-textoffset,211,16);
 		pane.add(docktext);
+		
+		//Button
+		captchalogue_button = new JLabel(createImageIcon("modi/global/captchalogue.png"));
+		captchalogue_button.addMouseListener(docklistener);
+		captchalogue_button.setBounds(screensize.width - 32, 100-textoffset, 16, 16);
+		pane.setLayer(captchalogue_button, 100);
+		pane.add(captchalogue_button);
 		
 		//Icons
 		iconpane = new JLayeredPane();
@@ -536,6 +545,39 @@ public class Main implements ActionListener, WindowListener
 		sylladexcards.add(new SylladexCard(id, this));
 		refreshDock();
 		id++;
+	}
+	
+	private void captchalogueClipboard()
+	{
+		Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(this);
+		try
+		{
+			if(t.isDataFlavorSupported(DataFlavor.imageFlavor))
+			{
+				addItem((Image)t.getTransferData(DataFlavor.imageFlavor));
+			}
+			else if(t.isDataFlavorSupported(DataFlavor.stringFlavor))
+			{
+				addItem((String)t.getTransferData(DataFlavor.stringFlavor));
+			}
+			else if(t.isDataFlavorSupported(DataFlavor.javaFileListFlavor));
+			{
+				java.util.List<File> fileList = (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
+				for (File file : fileList)
+				{
+					if(file.getName().endsWith(".class") || file.getName().endsWith(".sdw"))
+					{
+						Widget widget = loadWidget(file);
+						addItem(widget);
+					}
+					else
+					{
+						addItem(file);
+					}
+				}
+			}
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 	
 	protected Widget loadWidget(File file)
@@ -1008,12 +1050,19 @@ public class Main implements ActionListener, WindowListener
 		@Override
 		public void mouseClicked(MouseEvent e)
 		{
-			if(!d_hidden)
+			if(e.getSource().equals(captchalogue_button))
 			{
-				if(e.getButton()==MouseEvent.BUTTON1)
-					modus.showSelectionWindow();
-				else
-					prefs.showPreferencesFrame();
+				captchalogueClipboard();
+			}
+			else
+			{
+				if(!d_hidden)
+				{
+					if(e.getButton()==MouseEvent.BUTTON1)
+						modus.showSelectionWindow();
+					else
+						prefs.showPreferencesFrame();
+				}
 			}
 		}
 		
