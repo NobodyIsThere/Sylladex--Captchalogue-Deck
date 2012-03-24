@@ -23,8 +23,6 @@ public class SylladexItem
 	private String name = "ITEM";
 	private String code;
 	
-	private JPanel panel;
-	
 	/**
 	 * Creates a new sylladex item from the given save string.
 	 * @param string - The string to load the item from.
@@ -141,11 +139,11 @@ public class SylladexItem
 	}
 	
 	/**
-	 * @return The panel for use on the sylladex card.
+	 * @return A panel for use on the sylladex card.
 	 */
 	public JPanel getPanel()
 	{
-		panel = new JPanel();
+		JPanel panel = new JPanel();
 		panel.setLayout(null);
 		panel.setOpaque(false);
 		
@@ -177,6 +175,7 @@ public class SylladexItem
 			cardicon = new JLabel("<HTML>" + (String)contents + "</HTML>");
 			cardicon.setBounds(15*m.getModusSettings().get_card_width()/148,60*m.getModusSettings().get_card_height()/188,
 								24*m.getModusSettings().get_card_width()/37,100*m.getModusSettings().get_card_height()/188);
+			cardicon.setVerticalTextPosition(JLabel.TOP);
 		}
 		else if(contents instanceof Widget)
 		{
