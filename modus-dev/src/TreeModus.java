@@ -1,4 +1,6 @@
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ public class TreeModus extends FetchModus
 		s.set_bottom_dock_image("modi/tree/dock.png");
 		s.set_top_dock_image("modi/tree/dock_top.png");
 		s.set_dock_text_image("modi/tree/text.png");
+		s.set_dock_card_image("modi/tree/dockcard.png");
 		s.set_card_image("modi/tree/card.png");
 		s.set_card_back_image("modi/tree/back.png");
 		
@@ -478,6 +481,39 @@ public class TreeModus extends FetchModus
 
 	}
 	
+	
+	private class Brace extends JLabel
+	{
+		boolean above = false;
+		public void setAbove(boolean above)
+		{
+			this.above = above;
+		}
+		
+		public void paintComponent(Graphics g)
+		{
+			g.setColor(new Color(124,166,25));
+			if (above)
+			{
+				// |
+				g.drawLine(0, getHeight(), 0, 0);
+				// -
+				g.drawLine(0, 0, getWidth(), 0);
+				// |
+				g.drawLine(getWidth()-1, 0, getWidth()-1, getHeight());
+			}
+			else
+			{
+				// |
+				g.drawLine(0, 0, 0, getHeight()-1);
+				// -
+				g.drawLine(0, getHeight()-1, getWidth(), getHeight()-1);
+				// |
+				g.drawLine(getWidth()-1, getHeight()-1, getWidth()-1, 0);
+			}
+		}
+	}
+	
 	@Override
 	public void prepare()
 	{
@@ -606,6 +642,36 @@ public class TreeModus extends FetchModus
 		if(tree!=null)
 		{ m.setCardHolderSize(tree.treeroot.leftWidth()*2 + tree.treeroot.rightWidth()*2 + s.get_card_width(), tree.getHeight()*s.get_card_height() + s.get_card_height()); }
 		m.refreshCardHolder();
+		
+		if (tree==null) return;
+		// Arrange dock icons
+		int i=0;
+		for (SylladexCard card : tree)
+		{
+			icons.set(i, card.getIcon());
+			i++;
+		}
+		m.setIcons(icons);
+		foreground.removeAll();
+		for (SylladexCard card : cards)
+		{
+			if (tree.getNodeWithCard(card).left != null)
+			{
+				Brace b = new Brace();
+				b.setAbove(true);
+				int w = tree.getNodeWithCard(card).left.card.getIcon().getX() - card.getIcon().getX() - 3;
+				b.setBounds(card.getIcon().getX()+16, m.getDockIconYPosition()-2, w, 8);
+				foreground.add(b);
+			}
+			
+			if (tree.getNodeWithCard(card).right != null)
+			{
+				Brace b = new Brace();
+				int w = tree.getNodeWithCard(card).right.card.getIcon().getX() - card.getIcon().getX() - 3;
+				b.setBounds(card.getIcon().getX()+16, m.getDockIconYPosition()+52, w, 8);
+				foreground.add(b);
+			}
+		}
 	}
 	
 	@Override
@@ -639,6 +705,7 @@ public class TreeModus extends FetchModus
 	public void addCard()
 	{
 		m.addCard();
+		arrangeCards();
 	}
 	
 	@Override
