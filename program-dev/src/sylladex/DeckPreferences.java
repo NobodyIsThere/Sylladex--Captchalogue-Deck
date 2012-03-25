@@ -48,7 +48,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		//Swing
 			private JPanel modus_panel = new JPanel();
 			
-	public DeckPreferences(Main m) throws FileNotFoundException
+	public DeckPreferences(Main m)
 	{
 		loadPreferences();
 		this.m = m;
@@ -106,31 +106,39 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		sylladex_panel = new JPanel();
 		modus_panel = new JPanel();
 		about_panel = new JPanel();
-		try
-		{
-			loadPreferences();
-			loadItems();
-		}
-		catch (FileNotFoundException e){ e.printStackTrace(); }
+		
+		loadPreferences();
+		loadItems();
+		
 		createPreferencesFrame();
 		
 		m.changeModus(modus);
 	}
 	
 	//Loading
-	private void loadPreferences() throws FileNotFoundException
+	private void loadPreferences()
 	{
 		File prefs_file = new File(core_prefs_file);
 		
-		Scanner prefscanner = new Scanner(new FileReader(prefs_file));
-		
 		try
 		{
+			Scanner prefscanner = new Scanner(new FileReader(prefs_file));
 			while(prefscanner.hasNextLine())
 			{ processPrefLine(prefscanner.nextLine()); }
+			prefscanner.close();
 		}
-		finally
-		{ prefscanner.close(); }
+		catch (FileNotFoundException e)
+		{
+			if (new File("modi/prefs/").exists())
+			{
+				createPreferences();
+				loadPreferences();
+			}
+			else
+			{
+				JOptionPane.showMessageDialog(null, "Could not write preferences! Check cd/modi/prefs/preferences.txt");
+			}
+		}
 		
 		interpretPreferences(core_preferences);
 	}
@@ -158,7 +166,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			}
 			catch (FileNotFoundException e)
 			{
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Unable to load modus preferences!");
 			}
 			finally
 			{ itemscanner.close(); prefscanner.close(); }
@@ -243,7 +251,32 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Unable to write preferences!\n" + e.getLocalizedMessage());
+		}
+	}
+	
+	private void createPreferences()
+	{
+		try
+		{
+			FileWriter writer = new FileWriter(core_prefs_file);
+			BufferedWriter bwriter = new BufferedWriter(writer);
+			bwriter.write("top:false"); bwriter.newLine();
+			bwriter.write("autohide_dock:false"); bwriter.newLine();
+			bwriter.write("always_on_top_dock:true"); bwriter.newLine();
+			bwriter.write("usb_mode:false"); bwriter.newLine();
+			bwriter.write("offset:0"); bwriter.newLine();
+			bwriter.write("name_items:true"); bwriter.newLine();
+			bwriter.write("autohide_cards:false"); bwriter.newLine();
+			bwriter.write("always_on_top_cards:true"); bwriter.newLine();
+			bwriter.write("copy:false"); bwriter.newLine();
+			bwriter.write("fetchmodus:StackModus");
+			bwriter.close();
+		}
+		catch (IOException e)
+		{
+			JOptionPane.showMessageDialog(null, "Unable to read/write preferences file! Check cd/modi/prefs/preferences.txt");
+			System.exit(1);
 		}
 	}
 	
@@ -587,14 +620,22 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 				modi.add((FetchModus)modus.getConstructor(m.getClass()).newInstance((Object)null));
 			}
 		}
-		catch (MalformedURLException e){e.printStackTrace();}
-		catch (ClassNotFoundException e){e.printStackTrace();}
-		catch (IllegalArgumentException e){e.printStackTrace();}
-		catch (SecurityException e){e.printStackTrace();}
-		catch (InstantiationException e){e.printStackTrace();}
-		catch (IllegalAccessException e){e.printStackTrace();}
-		catch (InvocationTargetException e){e.printStackTrace();}
-		catch (NoSuchMethodException e){e.printStackTrace();}
+		catch (ClassNotFoundException e)
+		{
+			JOptionPane.showMessageDialog(null, "Class not found!\n" + e.getLocalizedMessage());
+		}
+		catch (InstantiationException e)
+		{
+			JOptionPane.showMessageDialog(null, "Unable to instantiate class!\n" + e.getLocalizedMessage());
+		}
+		catch (NoSuchMethodException e)
+		{
+			JOptionPane.showMessageDialog(null, "Could not find constructor!\n" + e.getLocalizedMessage());
+		}
+		catch (Exception e)
+		{
+			JOptionPane.showMessageDialog(null, "Error!\n" + e.getLocalizedMessage());
+		}
 		
 		int offset = 0;
 		int xpos = 0;

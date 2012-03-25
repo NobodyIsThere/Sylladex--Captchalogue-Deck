@@ -62,20 +62,10 @@ public class Main implements ActionListener, WindowListener
 	
 	public Main()
 	{
-		//SynthLookAndFeel lf = new SynthLookAndFeel();
-		try
-		{
-			//laf.load(Main.class.getResourceAsStream("files/theme.xml"), Main.class);
-			//UIManager.setLookAndFeel(lf);
-			
-			prefs = new DeckPreferences(this);
-		}
-		//catch (Exception e) { //Don't use this lf }
-		catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
-			//TODO: We can't continue without preferences.
-		}
+		//laf.load(Main.class.getResourceAsStream("files/theme.xml"), Main.class);
+		//UIManager.setLookAndFeel(lf);
+		prefs = new DeckPreferences(this);
+		
 		modus = prefs.getModus();
 		modus_settings = modus.getModusSettings();
 		
@@ -190,12 +180,11 @@ public class Main implements ActionListener, WindowListener
 			}
 			catch (UnsupportedFlavorException e)
 			{
-				e.printStackTrace();
 				return false;
 			}
 			catch (IOException e)
 			{
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "IO error!\n" + e.getLocalizedMessage());
 				return false;
 			}
 			
@@ -302,11 +291,12 @@ public class Main implements ActionListener, WindowListener
 		icon = new TrayIcon(createImageIcon("modi/global/trayicon.gif").getImage());
 		
 		icon.setPopupMenu(popup);
-		try
+		
+		try { tray.add(icon); }
+		catch (AWTException e)
 		{
-			tray.add(icon);
+			JOptionPane.showMessageDialog(null, "Could not create tray icon!\n" + e.getLocalizedMessage());
 		}
-		catch(Exception e){ e.printStackTrace(); }
 	}
 	
 	private void refreshSystemTray()
@@ -577,16 +567,21 @@ public class Main implements ActionListener, WindowListener
 				}
 			}
 		}
-		catch (Exception e) { e.printStackTrace(); }
+		catch (IOException e)
+		{
+			JOptionPane.showMessageDialog(null, "IO error!\n" + e.getLocalizedMessage());
+		}
+		catch (UnsupportedFlavorException e){}
 	}
 	
 	protected Widget loadWidget(File file)
 	{
+		String name = "";
 		try
 		{
 			URL[] url = { new File("widgets/").toURI().toURL() };
 			ClassLoader cl = new URLClassLoader(url);
-			String name = file.getName().replaceAll("\\.class?", "");
+			name = file.getName().replaceAll("\\.class?", "");
 			name = name.replaceAll("\\.sdw?", "");
 			Class<?> wclass = cl.loadClass(name);
 			Widget widget = (Widget) wclass.newInstance();
@@ -594,7 +589,14 @@ public class Main implements ActionListener, WindowListener
 			widget.prepare();
 			return widget;
 		}
-		catch (Exception e) {e.printStackTrace();}
+		catch (ClassNotFoundException e)
+		{
+			JOptionPane.showMessageDialog(null, "Class not found: " + name);
+		}
+		catch (Exception e)
+		{
+			JOptionPane.showMessageDialog(null, "Unable to load widget!\n" + e.getLocalizedMessage());
+		}
 		return null;
 	}
 	
@@ -836,7 +838,7 @@ public class Main implements ActionListener, WindowListener
 		}
 		catch (MalformedURLException e)
 		{
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Error!\n" + e.getLocalizedMessage());
 		}
 		return icon;
 	}
@@ -969,7 +971,7 @@ public class Main implements ActionListener, WindowListener
 			}
 			catch (Exception e)
 			{
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Unable to make window transparent!");
 			}
 		}
 	}
