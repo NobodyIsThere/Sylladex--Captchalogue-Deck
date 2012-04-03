@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -52,7 +53,7 @@ public class Main implements ActionListener, WindowListener
 	private Timer cautohide_timer = new Timer(2000, this);
 	private boolean d_hidden = false;
 	
-	private MyClipboardOwner co = new MyClipboardOwner();
+	private MyClipboardOwner co;
 	
 	public static void main(String[] args)
 	{
@@ -95,6 +96,8 @@ public class Main implements ActionListener, WindowListener
 		}
 		
 		if(prefs.autohide_cards()){ cardholder.setVisible(false); }
+		
+		co = new MyClipboardOwner();
 	}
 	
 	protected void changeModus(FetchModus m)
@@ -540,7 +543,7 @@ public class Main implements ActionListener, WindowListener
 	@SuppressWarnings("unchecked")
 	private void captchalogueClipboard()
 	{
-		Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(this);
+		Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
 		try
 		{
 			if(t.isDataFlavorSupported(DataFlavor.imageFlavor))
@@ -671,10 +674,12 @@ public class Main implements ActionListener, WindowListener
 		else if(o instanceof String)
 		{
 			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection((String)o), co);
+			co.updateContents();
 		}
 		else if(o instanceof Image)
 		{
 			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new ImageSelection((Image)o), co);
+			co.updateContents();
 		}
 		else if(o instanceof Widget)
 		{
@@ -820,6 +825,24 @@ public class Main implements ActionListener, WindowListener
 	public int getDockIconYPosition()
 	{
 		if(prefs.top()==true) { return 10; } return 35;
+	}
+	
+	public static DataFlavor selectBestDataFlavor(DataFlavor[] flavors)
+	{
+		java.util.List<DataFlavor> fl = Arrays.asList(flavors);
+		if (fl.contains(DataFlavor.imageFlavor))
+		{
+			return DataFlavor.imageFlavor;
+		}
+		else if (fl.contains(DataFlavor.stringFlavor))
+		{
+			return DataFlavor.stringFlavor;
+		}
+		else if (fl.contains(DataFlavor.javaFileListFlavor))
+		{
+			return DataFlavor.javaFileListFlavor;
+		}
+		return null;
 	}
 	
 	/**
@@ -1136,10 +1159,49 @@ public class Main implements ActionListener, WindowListener
 		
 	}
 	
-	private class MyClipboardOwner implements ClipboardOwner
+	private class MyClipboardOwner implements ClipboardOwner, ActionListener
 	{
+		private Timer timer;
+		private Object last_contents;
+		
 		@Override
 		public void lostOwnership(Clipboard clipboard, Transferable contents){}
+		
+		public MyClipboardOwner()
+		{
+			timer = new Timer(100, this);
+			updateContents();
+			timer.start();
+		}
+		
+		public void updateContents()
+		{
+			try
+			{
+				Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+				last_contents = c.getData(Main.selectBestDataFlavor(c.getAvailableDataFlavors()));
+			}
+			catch (Exception e){ e.printStackTrace(); }
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			if (e.getSource() == timer && prefs.auto_captcha())
+			{
+				try
+				{
+					Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+					Object new_contents = c.getData(Main.selectBestDataFlavor(c.getAvailableDataFlavors()));
+					if (!new_contents.equals(last_contents))
+					{
+						captchalogueClipboard();
+						last_contents = new_contents;
+					}
+				}
+				catch (Exception f){ f.printStackTrace(); }
+			}
+		}
 	}
 	
 	public static class DragListener implements MouseListener, MouseMotionListener

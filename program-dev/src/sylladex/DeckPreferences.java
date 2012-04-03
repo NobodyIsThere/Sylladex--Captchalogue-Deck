@@ -32,10 +32,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 				private boolean usb_mode; private JCheckBox usbmode;
 				private int offset; private JSlider dock_offset;
 				private boolean name_items; private JCheckBox nameitems;
+				private boolean auto_captcha; private JCheckBox autocaptcha;
 			//Cards
 				private boolean autohide_cards; private JCheckBox ahcards;
 				private boolean always_on_top_cards; private JCheckBox aotcards;
-				private boolean copy; private JCheckBox copybox;
 			//Modus
 				private String fetchmodus = "StackModus"; private JButton modusbutton;
 		//Swing
@@ -181,10 +181,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		usb_mode = Boolean.parseBoolean(preferences.get("usb_mode"));
 		offset = Integer.parseInt(preferences.get("offset"));
 		name_items = Boolean.parseBoolean(preferences.get("name_items"));
+		auto_captcha = Boolean.parseBoolean(preferences.get("auto_captcha"));
 		
 		autohide_cards = Boolean.parseBoolean(preferences.get("autohide_cards"));
 		always_on_top_cards = Boolean.parseBoolean(preferences.get("always_on_top_cards"));
-		copy = Boolean.parseBoolean(preferences.get("copy"));
 		
 		fetchmodus = preferences.get("fetchmodus");
 	}
@@ -197,9 +197,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		String usb_modes = new Boolean(usb_mode).toString();
 		String offsets = new Integer(offset).toString();
 		String name_itemss = new Boolean(name_items).toString();
+		String auto_captchas = new Boolean(auto_captcha).toString();
 		String autohide_cardss = new Boolean(autohide_cards).toString();
 		String always_on_top_cardss = new Boolean(always_on_top_cards).toString();
-		String copys = new Boolean(copy).toString();
 		//No need for fetchmodus.toString!
 		
 		core_preferences.put("top", tops);
@@ -208,9 +208,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		core_preferences.put("usb_mode", usb_modes);
 		core_preferences.put("offset", offsets);
 		core_preferences.put("name_items", name_itemss);
+		core_preferences.put("auto_captcha", auto_captchas);
 		core_preferences.put("autohide_cards", autohide_cardss);
 		core_preferences.put("always_on_top_cards", always_on_top_cardss);
-		core_preferences.put("copy", copys);
 		core_preferences.put("fetchmodus", fetchmodus);
 	}
 	
@@ -267,9 +267,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			bwriter.write("usb_mode:false"); bwriter.newLine();
 			bwriter.write("offset:0"); bwriter.newLine();
 			bwriter.write("name_items:true"); bwriter.newLine();
+			bwriter.write("auto_captcha:false"); bwriter.newLine();
 			bwriter.write("autohide_cards:false"); bwriter.newLine();
 			bwriter.write("always_on_top_cards:true"); bwriter.newLine();
-			bwriter.write("copy:false"); bwriter.newLine();
 			bwriter.write("fetchmodus:StackModus");
 			bwriter.close();
 		}
@@ -392,9 +392,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		return always_on_top_cards;
 	}
 	
-	public boolean copy_instead_of_move()
+	public boolean auto_captcha()
 	{
-		return copy;
+		return auto_captcha;
 	}
 	
 	/**
@@ -478,10 +478,10 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			usbmode.addActionListener(this);
 			usbmode.setEnabled(false);
 			
-		copybox = new JCheckBox("Copy outgoing files rather than moving them.");
-			copybox.setSelected(copy);
-			copybox.addActionListener(this);
-			copybox.setEnabled(false);
+		autocaptcha = new JCheckBox("Auto-captchalogue clipboard");
+			autocaptcha.setSelected(auto_captcha);
+			autocaptcha.addActionListener(this);
+			autocaptcha.setEnabled(false);
 			
 		nameitems = new JCheckBox("Always prompt for image names");
 			nameitems.setSelected(name_items);
@@ -526,8 +526,8 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		cardpanel.add(aotcards);
 		
 		miscpanel.add(nameitems);
+		miscpanel.add(autocaptcha);
 		miscpanel.add(usbmode);
-		miscpanel.add(copybox);
 		
 		sylladex_panel.add(dockpanel);
 		sylladex_panel.add(cardpanel);
@@ -691,9 +691,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		{
 			usb_mode = usbmode.isSelected();
 		}
-		else if(source == copybox)
+		else if(source == autocaptcha)
 		{
-			copy = copybox.isSelected();
+			auto_captcha = autocaptcha.isSelected();
 		}
 		else if(e.getActionCommand().equals("add card"))
 		{
