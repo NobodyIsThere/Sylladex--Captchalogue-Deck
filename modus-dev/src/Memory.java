@@ -1,6 +1,4 @@
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -10,6 +8,8 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import sylladex.*;
 import sylladex.Animation.AnimationType;
@@ -121,7 +121,8 @@ public class Memory extends FetchModus
 		game.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		game.setTitle("Memory");
 		game.setLayout(null);
-		game.setSize(650,450);
+		game.setSize(675,476);
+		game.setResizable(false);
 		game.setLocationRelativeTo(null);
 		
 		System.out.println("Showing window.");
@@ -146,6 +147,7 @@ public class Memory extends FetchModus
 		
 	}
 	
+	@SuppressWarnings("serial")
 	private class Game extends JFrame
 	{	
 		private MemoryCard currentcard = null;
@@ -159,6 +161,15 @@ public class Memory extends FetchModus
 		
 		private void createGame()
 		{
+			JPanel cardpanel = new JPanel();
+			cardpanel.setLayout(null);
+			int height = s.get_card_height()*(array.size()/3 + 1) + 20;
+			cardpanel.setBounds(0, 0, 650, height);
+			cardpanel.setPreferredSize(new Dimension(650, height));
+			JScrollPane pane = new JScrollPane(cardpanel);
+			pane.setBounds(0, 0, 670, 450);
+			pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+			
 			ArrayList<MemoryCard> mcards = new ArrayList<MemoryCard>();
 			for(SylladexCard card : array)
 			{
@@ -174,7 +185,7 @@ public class Memory extends FetchModus
 				int index = (int)Math.floor(Math.random()*mcards.size());
 				MemoryCard card = mcards.get(index);
 				card.setBounds(x, y, s.get_card_width(), s.get_card_height());
-				this.add(card);
+				cardpanel.add(card);
 				mcards.remove(index);
 				
 				x += s.get_card_width() + 2;
@@ -184,6 +195,7 @@ public class Memory extends FetchModus
 					x = 4;
 				}
 			}
+			this.add(pane);
 		}
 		
 		private class MemoryCard extends JLabel implements MouseListener, ActionListener
@@ -202,11 +214,6 @@ public class Memory extends FetchModus
 				panel.setVisible(false);
 				add(panel);
 				addMouseListener(this);
-			}
-			
-			public void setBounds(int x, int y, int width, int height)
-			{
-				super.setBounds(x, y, width, height);
 			}
 			
 			public void setUncovered(boolean uncovered)

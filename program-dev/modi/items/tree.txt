@@ -1,3 +1,6 @@
+[WIDGET]widgets/Pesterchum.class[/WIDGET]gumptiousCreator[NAME]Pesterchum
+[FILE]C:\Development\git\Misc[NAME]Misc
+[FILE]C:\Development\git\getmodi.bat[NAME]getmodi.bat
+[FILE]C:\Development\git\Sylladex Tutorial[NAME]Sylladex Tutorial
 [FILE]C:\Development\git\sbahj.zip[NAME]sbahj.zip
-[WIDGET]widgets/RPObject.class[/WIDGET]None;C:\Users\Adam\Documents\Game Maker\Cursor\turret2.gif[NAME]None
-[WIDGET]widgets/UpdateChecker.class[/WIDGET]300;true;MSPA_HOME;6;6385;6;6385;n;[NAME]Update Checker
+[FILE]C:\Development\git\Sylladex--Captchalogue-Deck[NAME]Sylladex--Captchalogue-Deck

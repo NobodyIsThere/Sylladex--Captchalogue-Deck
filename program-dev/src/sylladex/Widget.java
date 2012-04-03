@@ -7,7 +7,6 @@ import javax.swing.JLabel;
 public abstract class Widget implements MouseListener
 {
 	protected SylladexCard card;
-	protected JPanel panel = new JPanel();
 	protected JLabel dock_icon = new JLabel("");
 	protected Main m;
 	
@@ -33,10 +32,7 @@ public abstract class Widget implements MouseListener
 		return card;
 	}
 	
-	public JPanel getPanel()
-	{
-		return panel;
-	}
+	public abstract JPanel getPanel();
 	
 	public JLabel getDockIcon()
 	{

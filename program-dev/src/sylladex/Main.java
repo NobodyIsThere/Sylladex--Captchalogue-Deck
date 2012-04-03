@@ -537,6 +537,7 @@ public class Main implements ActionListener, WindowListener
 		id++;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void captchalogueClipboard()
 	{
 		Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(this);

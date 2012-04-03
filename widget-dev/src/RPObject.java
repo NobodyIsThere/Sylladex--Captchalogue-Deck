@@ -11,19 +11,19 @@ public class RPObject extends Widget implements MouseListener
 	private File img;
 	private final JFileChooser image_chooser = new JFileChooser();
 	
-	public void open()
+	public void open(){}
+	
+	public void prepare(){}
+	
+	private void setImages()
 	{
-		
-	}
-
-	@Override
-	public void prepare()
-	{
-		panel.setOpaque(false);
+		ImageIcon icon = Main.createImageIcon(img.getPath());
+		dock_icon = new JLabel(Main.getDockIcon(icon.getImage()));
 	}
 	
-	private void setImages(File img)
+	public JPanel getPanel()
 	{
+		JPanel panel = new JPanel();
 		ImageIcon icon = Main.createImageIcon(img.getPath());
 		int cardwidth = m.getModus().getModusSettings().get_card_width();
 		int cardheight = m.getModus().getModusSettings().get_card_height();
@@ -31,8 +31,9 @@ public class RPObject extends Widget implements MouseListener
 		JLabel image_label = new JLabel(image);
 		image_label.setBounds(0, 0, 24*cardwidth/37, 100*cardheight/188);
 		panel.setLayout(null);
+		panel.setOpaque(false);
 		panel.add(image_label);
-		dock_icon = new JLabel(Main.getDockIcon(icon.getImage()));
+		return panel;
 	}
 
 	@Override
@@ -41,7 +42,7 @@ public class RPObject extends Widget implements MouseListener
 		string = savestring.substring(0, savestring.indexOf(";"));
 		img = new File(savestring.substring(savestring.indexOf(";")+1));
 		if(img.exists())
-			setImages(img);
+			setImages();
 	}
 	
 	@Override
@@ -123,12 +124,12 @@ public class RPObject extends Widget implements MouseListener
 		if(decision==JFileChooser.APPROVE_OPTION)
 		{
 			img = image_chooser.getSelectedFile();
-			setImages(img);
+			setImages();
 		}
 		else
 		{
 			img = new File("widgets/RPObject/missing.gif");
-			setImages(img);
+			setImages();
 		}
 	}
 }

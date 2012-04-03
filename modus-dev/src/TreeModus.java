@@ -481,7 +481,7 @@ public class TreeModus extends FetchModus
 
 	}
 	
-	
+	@SuppressWarnings("serial")
 	private class Brace extends JLabel
 	{
 		boolean above = false;

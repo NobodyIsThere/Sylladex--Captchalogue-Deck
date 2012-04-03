@@ -1,4 +1,4 @@
-top:true
+top:false
 autohide_dock:false
 always_on_top_dock:true
 usb_mode:false
@@ -7,4 +7,4 @@ name_items:true
 autohide_cards:false
 always_on_top_cards:true
 copy:false
-fetchmodus:TreeModus
+fetchmodus:Memory

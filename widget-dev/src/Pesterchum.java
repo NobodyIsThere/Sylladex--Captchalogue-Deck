@@ -28,8 +28,6 @@ public class Pesterchum extends Widget implements ActionListener
 	public void prepare()
 	{
 		ImageIcon imageicon = Main.createImageIcon("widgets/Pesterchum/image.png");
-		panel.add(new JLabel(imageicon));
-		panel.setOpaque(false);
 		dock_icon = new JLabel(Main.getDockIcon(imageicon.getImage()));
 		
 		if(Main.isWindows())
@@ -215,6 +213,15 @@ public class Pesterchum extends Widget implements ActionListener
 		timer = null;
 	}
 	
+	public JPanel getPanel()
+	{
+		ImageIcon imageicon = Main.createImageIcon("widgets/Pesterchum/image.png");
+		JPanel panel = new JPanel();
+		panel.add(new JLabel(imageicon));
+		panel.setOpaque(false);
+		return panel;
+	}
+	
 	@Override
 	public void mouseClicked(MouseEvent arg0)
 	{
@@ -230,7 +237,6 @@ public class Pesterchum extends Widget implements ActionListener
 	@Override
 	public void mouseReleased(MouseEvent arg0){}
 
-	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{

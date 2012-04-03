@@ -32,6 +32,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
@@ -357,6 +358,7 @@ public class UpdateChecker extends Widget
 		 */
 		private boolean iconBlocked = false;
 		/** JPanel holding the icon for the card. */
+		private JPanel panel = new JPanel();
 		private JLabel card_icon = new JLabel();
 		/**
 		 * An <code>Action</code> representing opening the <code>UpdateChecker</code>,
@@ -938,6 +940,12 @@ public class UpdateChecker extends Widget
 					saveString.append(preference.getSaveString() + ";");
 				return saveString.toString();
 			}
+		
+		public JPanel getPanel()
+		{
+			return panel;
+		}
+		
 		/**
 		 * Shows the popup menu if e is the popup trigger.
 		 * @return whether or not the popup menu is shown.
