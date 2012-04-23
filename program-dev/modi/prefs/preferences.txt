@@ -1,10 +1,10 @@
 top:false
-autohide_dock:false
+autohide_dock:true
 always_on_top_dock:true
 usb_mode:false
 offset:0
 name_items:true
-autohide_cards:false
+auto_captcha:true
+autohide_cards:true
 always_on_top_cards:true
-copy:false
-fetchmodus:Memory
+fetchmodus:HashMapModus

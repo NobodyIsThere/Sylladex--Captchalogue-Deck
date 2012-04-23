@@ -491,12 +491,15 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		else if(e.getActionCommand().equals("card mouse enter"))
 		{
 			SylladexCard card = (SylladexCard)e.getSource();
-			card.setPosition(new Point(s.get_card_width()-25, card.getPosition().y));
+			Point finalposition = new Point(s.get_card_width()-25, card.getPosition().y);
+			new Animation(card, finalposition, AnimationType.MOVE, null, "").run();
 		}
 		else if(e.getActionCommand().equals("card mouse exit"))
 		{
 			SylladexCard card = (SylladexCard)e.getSource();
-			card.setPosition(new Point(0, card.getPosition().y));
+			Point finalposition = new Point(0, card.getPosition().y);
+			Animation a = new Animation(card, finalposition, AnimationType.MOVE, null, "");
+			new Animation(AnimationType.WAIT, 100, a, "run").run();
 		}
 		else if(e.getActionCommand().equals("detect collisions"))
 		{

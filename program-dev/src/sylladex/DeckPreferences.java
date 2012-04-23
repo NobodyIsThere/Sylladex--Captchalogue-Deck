@@ -227,9 +227,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			bwriter.write("usb_mode:" + core_preferences.get("usb_mode")); bwriter.newLine();
 			bwriter.write("offset:" + core_preferences.get("offset")); bwriter.newLine();
 			bwriter.write("name_items:" + core_preferences.get("name_items")); bwriter.newLine();
+			bwriter.write("auto_captcha:" + core_preferences.get("auto_captcha")); bwriter.newLine();
 			bwriter.write("autohide_cards:" + core_preferences.get("autohide_cards")); bwriter.newLine();
 			bwriter.write("always_on_top_cards:" + core_preferences.get("always_on_top_cards")); bwriter.newLine();
-			bwriter.write("copy:" + core_preferences.get("copy")); bwriter.newLine();
 			bwriter.write("fetchmodus:" + core_preferences.get("fetchmodus"));
 			bwriter.close();
 			
@@ -481,7 +481,6 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		autocaptcha = new JCheckBox("Auto-captchalogue clipboard");
 			autocaptcha.setSelected(auto_captcha);
 			autocaptcha.addActionListener(this);
-			autocaptcha.setEnabled(false);
 			
 		nameitems = new JCheckBox("Always prompt for image names");
 			nameitems.setSelected(name_items);

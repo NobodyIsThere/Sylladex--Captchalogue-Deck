@@ -5,7 +5,6 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +15,7 @@ public class Pesterchum extends Widget implements ActionListener
 {
 	private String path;
 	private String username;
-	private HashMap<File, Integer> conversations;
-	private ArrayList<File> files;
+	private ArrayList<String> logs;
 	private ArrayList<Bubble> bubbles;
 	
 	private String fs = System.getProperty("file.separator");
@@ -27,8 +25,7 @@ public class Pesterchum extends Widget implements ActionListener
 	@Override
 	public void prepare()
 	{
-		ImageIcon imageicon = Main.createImageIcon("widgets/Pesterchum/image.png");
-		dock_icon = new JLabel(Main.getDockIcon(imageicon.getImage()));
+		setImages();
 		
 		if(Main.isWindows())
 		{
@@ -43,90 +40,91 @@ public class Pesterchum extends Widget implements ActionListener
 			path = System.getProperty("user.home") + "/.pesterchum/logs";
 		}
 		System.out.println(path);
-		conversations = new HashMap<File, Integer>();
-		files = new ArrayList<File>();
+		logs = new ArrayList<String>();
 		bubbles = new ArrayList<Bubble>();
 		
 		timer = new Timer(5000, this);
+	}
+	
+	private void setImages()
+	{
+		ImageIcon imageicon = Main.createImageIcon("widgets/Pesterchum/image.png");
+		dock_icon = new JLabel(Main.getDockIcon(imageicon.getImage()));
 	}
 
 	@Override
 	public void add()
 	{
 		username = JOptionPane.showInputDialog("Pesterchum username:");
+		path = path + fs + username;
 		getFiles();
+		timer.start();
 	}
 
 	@Override
 	public void load(String string)
 	{
 		username = string;
+		setImages();
+		path = path + fs + username;
 		getFiles();
+		timer.start();
 	}
 	
 	private void getFiles()
 	{
-		path = path + fs + username;
 		File root = new File(path);
-		System.out.println(root.getPath());
 		
 		for(String s : root.list())
 		{
 			File f = new File(path + fs + s + fs + "bbcode");
-			System.out.println(f.getPath());
-			files.add(f);
-			setHashMap(f);
+			
+			for (String t : f.list())
+			{
+				String g = f.getPath() + fs + t;
+				logs.add(g);
+			}
 		}
-		
-		timer.start();
 	}
 	
 	private void checkFiles()
 	{
 		File root = new File(path);
-		if(root.list().length > files.size())
+		for (String s : root.list())
 		{
-			//TODO This is horrible, but it works.
-			files.add(root);
-			bubbles.add(new Bubble("...", "#000000"));
-			arrangeBubbles();
+			File f = new File(root.getPath() + fs + s + fs + "bbcode");
+			
+			for (String t : f.list())
+			{
+				String g = f.getPath() + fs + t;
+				
+				boolean already_existed = false;
+				for (String log : logs)
+				{
+					if (log.equals(g))
+					{
+						already_existed = true;
+					}
+				}
+				if(!already_existed)
+				{
+					createBubbleForFile(new File(g));
+					logs.add(g);
+				}
+			}
 		}
-	}
-	
-	private void setHashMap(File f)
-	{
-		conversations.put(f, f.list().length);
 	}
 	
 	private void check()
 	{
 		checkFiles();
-		for(File f : files)
-		{
-			if(f.list().length > conversations.get(f))
-			{
-				//New log! Process at once.
-				processFile(f);
-				conversations.put(f, f.list().length);
-			}
-		}
 	}
 	
-	private void processFile(File f)
+	private void createBubbleForFile(File f)
 	{
-		String latest = "0";
-		for(String s : f.list())
-		{
-			if(s.compareTo(latest)>0)
-			{
-				latest = s;
-			}
-		}
-		File file = new File(f.getPath() + fs + latest);
-		
 		try
 		{
-			Scanner scanner = new Scanner(new FileReader(file));
+			Scanner scanner = new Scanner(new FileReader(f));
 			String line = scanner.nextLine();
 			String from = line.substring(line.indexOf("--") + 3);
 			from = from.substring(0, from.indexOf(" "));
@@ -140,6 +138,7 @@ public class Pesterchum extends Widget implements ActionListener
 				System.out.println(colour);
 				addBubble(contract(from), colour);
 				m.showDock();
+				arrangeBubbles();
 			}
 		}
 		catch(Exception e){ e.printStackTrace(); }

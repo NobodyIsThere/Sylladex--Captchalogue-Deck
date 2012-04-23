@@ -1179,7 +1179,11 @@ public class Main implements ActionListener, WindowListener
 			try
 			{
 				Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-				last_contents = c.getData(Main.selectBestDataFlavor(c.getAvailableDataFlavors()));
+				DataFlavor f = Main.selectBestDataFlavor(c.getAvailableDataFlavors());
+				if (f != null && !f.equals(DataFlavor.imageFlavor))
+				{
+					last_contents = c.getData(f);
+				}
 			}
 			catch (Exception e){ e.printStackTrace(); }
 		}
@@ -1192,7 +1196,9 @@ public class Main implements ActionListener, WindowListener
 				try
 				{
 					Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
-					Object new_contents = c.getData(Main.selectBestDataFlavor(c.getAvailableDataFlavors()));
+					DataFlavor f = Main.selectBestDataFlavor(c.getAvailableDataFlavors());
+					if (f == null || f == DataFlavor.imageFlavor){ return; }
+					Object new_contents = c.getData(f);
 					if (!new_contents.equals(last_contents))
 					{
 						captchalogueClipboard();

@@ -1,6 +1,3 @@
+[FILE]C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Skype\Skype.lnk[NAME]Skype.lnk
 [WIDGET]widgets/Pesterchum.class[/WIDGET]gumptiousCreator[NAME]Pesterchum
-[FILE]C:\Development\git\Misc[NAME]Misc
-[FILE]C:\Development\git\getmodi.bat[NAME]getmodi.bat
-[FILE]C:\Development\git\Sylladex Tutorial[NAME]Sylladex Tutorial
-[FILE]C:\Development\git\sbahj.zip[NAME]sbahj.zip
-[FILE]C:\Development\git\Sylladex--Captchalogue-Deck[NAME]Sylladex--Captchalogue-Deck
+[WIDGET]widgets/UpdateChecker.class[/WIDGET]300;true;MSPA_HOME;6;6726;6;6716;u;[NAME]Update Checker
