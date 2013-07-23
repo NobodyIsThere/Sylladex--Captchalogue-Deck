@@ -11,111 +11,82 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import sylladex.*;
-import sylladex.Animation.AnimationType;
+import sylladex.CaptchalogueCard;
+import sylladex.FetchModus;
+import sylladex.Main;
+import sylladex.SylladexItem;
+import util.Animation;
+import util.Animation.AnimationType;
+import util.Util;
+import util.Util.OpenReason;
 
 public class Memory extends FetchModus
-{
-	private FetchModusSettings s;
-	private ArrayList<SylladexCard> array;
-	
+{	
 	public Memory(Main m)
 	{
-		this.m = m;
-		createModusSettings();
+		super(m);
 	}
 	
-	private void createModusSettings()
+	public void initialSettings()
 	{
-		s = new FetchModusSettings();
+		settings.set_dock_text_image("modi/canon/memory/docktext.png");
+		settings.set_card_image("modi/canon/memory/card.png");
+		settings.set_card_back_image("modi/canon/memory/back.png");
 		
-		s.set_bottom_dock_image("modi/memory/dockbg.png");
-		s.set_top_dock_image("modi/memory/dockbg_top.png");
-		s.set_dock_text_image("modi/memory/docktext.png");
-		s.set_card_image("modi/memory/card.png");
-		s.set_card_back_image("modi/memory/back.png");
+		settings.set_modus_image("modi/canon/memory/modus.png");
+		settings.set_name("Memory");
+		settings.set_author("gumptiousCreator");
 		
-		s.set_modus_image("modi/memory/modus.png");
-		s.set_name("Memory");
-		s.set_author("gumptiousCreator");
+		settings.set_preferences_file("modi/prefs/memoryprefs.txt");
 		
-		s.set_item_file("modi/items/queuestack.txt");
-		s.set_preferences_file("modi/prefs/memoryprefs.txt");
+		settings.set_background_color(185, 73, 255);
+		settings.set_secondary_color(156, 41, 228);
+		settings.set_text_color(255, 255, 255);
 		
-		s.set_background_color(255, 255, 0);
+		settings.set_initial_card_number(10);
+		settings.set_origin(20, 120);
 		
-		s.set_initial_card_number(10);
-		s.set_origin(20, 120);
+		settings.set_card_size(105, 133);
 		
-		s.set_card_size(105, 133);
-		
-		s.set_cards_draggable(false);
-		s.set_draw_empty_cards(true);
-		s.set_shade_inaccessible_cards(false);
+		settings.set_cards_draggable(false);
+		settings.set_draw_empty_cards(true);
+		settings.set_shade_inaccessible_cards(false);
+		settings.set_bounce_captchalogued_items(false);
 	}
 
 	@Override
-	public FetchModusSettings getModusSettings()
-	{
-		return s;
-	}
-
-	@Override
-	public void prepare()
-	{
-		icons = new ArrayList<JLabel>();
-		array = new ArrayList<SylladexCard>();
-		addLoadedItems();
-	}
+	public void prepare() {}
 	
-	private void addLoadedItems()
+	@Override
+	public void ready()
 	{
-		for(String s : items)
-		{
-			if(m.getNextEmptyCard()==null) { m.addCard(); }
-			SylladexItem item = new SylladexItem(s, m);
-			SylladexCard card = m.getNextEmptyCard();
-			JLabel icon = m.getIconLabelFromItem(item);
-			card.setIcon(icon);
-			card.setItem(item);
-			icons.add(icon);
-			m.setIcons(icons);
-			array.add(card);
-		}
+		settings.set_bounce_captchalogued_items(true);
 	}
 
 	@Override
-	public void addGenericItem(Object o)
+	public boolean captchalogue(SylladexItem item)
 	{
-		if(m.getNextEmptyCard()==null){ return; }
-		SylladexCard card = m.getNextEmptyCard();
-		SylladexItem item = new SylladexItem("ITEM", o, m);
-		JLabel icon = m.getIconLabelFromItem(item);
-		card.setIcon(icon);
-		icons.add(icon);
-		card.setItem(item);
-		array.add(card);
-		
-		m.setIcons(icons);
+		if (deck.isFull()) { return false; }
+		CaptchalogueCard card = deck.captchalogueItemAndReturnCard(item);
+		card.setAccessible(false);
+		deck.setIcons(getCardOrder());
+		return true;
 	}
 
 	@Override
-	public void open(SylladexCard card)
+	public void open(CaptchalogueCard card, OpenReason reason)
 	{
-		array.remove(card);
-		icons.remove(card.getIcon());
-		m.open(card);
-		m.setIcons(icons);
+		deck.open(card, reason);
+		deck.setIcons(getCardOrder());
 	}
 
 	@Override
 	public void addCard()
 	{
-		m.addCard();
+		deck.addCard();
 	}
 
-	@Override
-	public void showSelectionWindow()
+	private void startGame()
 	{
 		Game game = new Game();
 		game.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -130,21 +101,18 @@ public class Memory extends FetchModus
 	}
 
 	@Override
-	public ArrayList<String> getItems()
+	public Object[] getCardOrder()
 	{
-		items = new ArrayList<String>();
-		for(SylladexCard card : array)
-		{
-			items.add(card.getItem().getSaveString());
-		}
-		return items;
+		return deck.getCards().toArray();
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		// TODO Auto-generated method stub
-		
+		if (e.getActionCommand().equals(Util.ACTION_USER_DOCK_CLICK))
+		{
+			startGame();
+		}
 	}
 	
 	@SuppressWarnings("serial")
@@ -163,7 +131,7 @@ public class Memory extends FetchModus
 		{
 			JPanel cardpanel = new JPanel();
 			cardpanel.setLayout(null);
-			int height = s.get_card_height()*(array.size()/3 + 1) + 20;
+			int height = settings.get_card_height()*(deck.getCards().size()/3 + 1) + 20;
 			cardpanel.setBounds(0, 0, 650, height);
 			cardpanel.setPreferredSize(new Dimension(650, height));
 			JScrollPane pane = new JScrollPane(cardpanel);
@@ -171,10 +139,13 @@ public class Memory extends FetchModus
 			pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 			
 			ArrayList<MemoryCard> mcards = new ArrayList<MemoryCard>();
-			for(SylladexCard card : array)
+			for(CaptchalogueCard card : deck.getCards())
 			{
-				mcards.add(new MemoryCard(card));
-				mcards.add(new MemoryCard(card));
+				if (!card.isEmpty())
+				{
+					mcards.add(new MemoryCard(card));
+					mcards.add(new MemoryCard(card));
+				}
 			}
 			
 			int x = 4;
@@ -184,14 +155,14 @@ public class Memory extends FetchModus
 			{
 				int index = (int)Math.floor(Math.random()*mcards.size());
 				MemoryCard card = mcards.get(index);
-				card.setBounds(x, y, s.get_card_width(), s.get_card_height());
+				card.setBounds(x, y, settings.get_card_width(), settings.get_card_height());
 				cardpanel.add(card);
 				mcards.remove(index);
 				
-				x += s.get_card_width() + 2;
-				if(x>650-s.get_card_width())
+				x += settings.get_card_width() + 2;
+				if(x>650-settings.get_card_width())
 				{
-					y += s.get_card_height() + 2;
+					y += settings.get_card_height() + 2;
 					x = 4;
 				}
 			}
@@ -200,17 +171,24 @@ public class Memory extends FetchModus
 		
 		private class MemoryCard extends JLabel implements MouseListener, ActionListener
 		{
-			private SylladexCard card;
+			private CaptchalogueCard card;
 			private boolean uncovered;
 			
 			private JPanel panel;
 			
-			public MemoryCard(SylladexCard card)
+			public MemoryCard(CaptchalogueCard card)
 			{
 				this.card = card;
-				setIcon(Main.createImageIcon("modi/memory/card_hidden.png"));
-				panel = card.getItem().getPanel();
-				panel.setBounds(0, 0, s.get_card_width(), s.get_card_height());
+				setIcon(Util.createImageIcon("modi/canon/memory/card_hidden.png"));
+				if (card.getItem() != null)
+				{
+					panel = card.getItem().getPanel();
+				}
+				else
+				{
+					panel = new JPanel();
+				}
+				panel.setBounds(0, 0, settings.get_card_width(), settings.get_card_height());
 				panel.setVisible(false);
 				add(panel);
 				addMouseListener(this);
@@ -223,11 +201,11 @@ public class Memory extends FetchModus
 				
 				if(uncovered)
 				{
-					setIcon(Main.createImageIcon(s.get_card_image()));
+					setIcon(Util.createImageIcon(settings.get_card_image()));
 				}
 				else
 				{
-					setIcon(Main.createImageIcon("modi/memory/card_hidden.png"));
+					setIcon(Util.createImageIcon("modi/canon/memory/card_hidden.png"));
 				}
 			}
 
@@ -246,7 +224,7 @@ public class Memory extends FetchModus
 						if(currentcard.card == this.card)
 						{
 							// Win the game
-							open(card);
+							open(card, OpenReason.MODUS_DEFAULT);
 							currentcard = null;
 						}
 						else

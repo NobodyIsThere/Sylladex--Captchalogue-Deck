@@ -1,16 +1,17 @@
 package sylladex;
-import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
-import javax.swing.*;
+
+import javax.swing.JPanel;
+
+import util.Util.OpenReason;
 
 public abstract class FetchModus implements ActionListener
 {
 	//Declarations
-	protected Main m;
+	protected Main deck;
 	
-	protected ArrayList<JLabel> icons;
+	protected FetchModusSettings settings;
 	
 	protected JPanel preferences_panel = new JPanel();
 	
@@ -22,10 +23,26 @@ public abstract class FetchModus implements ActionListener
 	
 	protected JPanel foreground = new JPanel();
 	
+	protected boolean loading = true;
+	
+	public FetchModus(Main m)
+	{
+		deck = m;
+		settings = new FetchModusSettings();
+	}
+	
 	/**
-	 * @return An instance of FetchModusSettings containing vital information about the modus.
+	 * Called before prepare(). Images etc. should be set here.
 	 */
-	public abstract FetchModusSettings getModusSettings();
+	public abstract void initialSettings();
+	
+	/**
+	 * Called before prepare(), after initialSettings().
+	 */
+	public FetchModusSettings getSettings()
+	{
+		return settings;
+	}
 	
 	/**
 	 * Called when the modus has been selected. Preferences and items will be available at this point.
@@ -33,33 +50,21 @@ public abstract class FetchModus implements ActionListener
 	public abstract void prepare();
 	
 	/**
-	 * Called when the user drags an item to the sylladex.
-	 * @param o - The File, Image, String etc. that the user is attempting to captchalogue.
+	 * Called when all items have been loaded
 	 */
-	public abstract void addGenericItem(Object o);
+	public abstract void ready();
 	
-	public void addItem(String string)
-	{
-		addGenericItem(string);
-	}
-	public void addItem(Image image)
-	{
-		addGenericItem(image);
-	}
-	public void addItem(File file)
-	{
-		addGenericItem(file);
-	}
-	public void addItem(Widget widget)
-	{
-		addGenericItem(widget);
-	}
+	/**
+	 * Called when the user drags an item to the sylladex.
+	 * @param item - The item that the user is attempting to captchalogue.
+	 */
+	public abstract boolean captchalogue(SylladexItem item);
 
 	/**
 	 * Called when the user removes the item from the card.
 	 * @param card
 	 */
-	public abstract void open(SylladexCard card);
+	public abstract void open(CaptchalogueCard card, OpenReason reason);
 	
 	/**
 	 * Called when the user attempts to add a card to the deck. Common responses are either to leave this function
@@ -67,25 +72,8 @@ public abstract class FetchModus implements ActionListener
 	 */
 	public abstract void addCard();
 	
-	/**
-	 * Called when the user left-clicks on the dock.
-	 */
-	public abstract void showSelectionWindow();
+	public abstract Object[] getCardOrder();
 	
-	/**
-	 * Called when the state of the modus is required. Each element of the ArrayList corresponds to one line of the
-	 * item file.
-	 */
-	public abstract ArrayList<String> getItems();
-	
-	public ArrayList<JLabel> getDockIcons()
-	{
-		return icons;
-	}
-	public ArrayList<JLabel> getIcons()
-	{
-		return icons;
-	}
 	public JPanel getPreferencesPanel()
 	{
 		return preferences_panel;
@@ -98,10 +86,6 @@ public abstract class FetchModus implements ActionListener
 	{
 		return preferences;
 	}
-	public void setItems(ArrayList<String> items)
-	{
-		this.items = items;
-	}
 	public JPanel getBackground()
 	{
 		return background;
@@ -111,4 +95,7 @@ public abstract class FetchModus implements ActionListener
 		foreground.setLayout(null);
 		return foreground;
 	}
+
+	
+	public void refreshDock() {}
 }

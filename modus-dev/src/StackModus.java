@@ -1,162 +1,167 @@
-import sylladex.*;
-import java.awt.*;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.Timer;
+import java.util.LinkedList;
+
+import javax.swing.JLabel;
+
+import sylladex.CaptchalogueCard;
+import sylladex.FetchModus;
+import sylladex.Main;
+import sylladex.SylladexItem;
+import util.Animation;
+import util.Animation.AnimationType;
+import util.Util;
+import util.Util.OpenReason;
 
 public class StackModus extends FetchModus implements ActionListener
 {
-	//Stack stuff
-	private LinkedList<SylladexCard> stack = new LinkedList<SylladexCard>();
-	private FetchModusSettings s;
-	
-	private JLabel arrow;
-	private Timer timer = new Timer(1000, this);
-	
 	public StackModus(Main m)
 	{
-		this.m = m;
-		createModusSettings();
-		icons = new ArrayList<JLabel>();
+		super(m);
+	}
+
+	private LinkedList<CaptchalogueCard> stack = new LinkedList<CaptchalogueCard>();
+	
+	@Override
+	public void initialSettings()
+	{
+		settings.set_name("Stack");
+		
+		settings.set_preferences_file("modi/prefs/stackprefs.txt");
+		
+		settings.set_background_color(255, 6, 124);
+		
+		settings.set_secondary_color(148, 36, 70);
+		
+		settings.set_text_color(191, 255, 253);
+		
+		settings.set_initial_card_number(4);
+		
+		settings.set_origin(20, 120);
+		
+		settings.set_shade_inaccessible_cards(false);
 	}
 	
-	private void createModusSettings()
+	@Override
+	public void prepare() {}
+	
+	@Override
+	public void ready() {}
+
+	@Override
+	public boolean captchalogue(SylladexItem item)
 	{
-		s = new FetchModusSettings();
-		
-		s.set_name("Stack");
-		s.set_author("gumptiousCreator");
-		
-		s.set_item_file("modi/items/queuestack.txt");
-		s.set_preferences_file("modi/prefs/stackprefs.txt");
-		
-		s.set_background_color(255, 6, 124);
-		
-		s.set_initial_card_number(4);
-		s.set_origin(20, 120);
+		if (!deck.isFull())
+		{
+			finishCaptchalogue(item);
+			arrangeCards(true);
+		}
+		else
+		{
+			CaptchalogueCard card = stack.getLast();
+			SylladexItem last_item = card.getItem();
+			open(card, OpenReason.MODUS_PUSH);
+			finishCaptchalogue(item);
+			animatePushOut(last_item);
+		}
+		return true;
 	}
 	
-	public FetchModusSettings getModusSettings()
+	private void finishCaptchalogue(SylladexItem item)
 	{
-		return s;
-	}
-	
-	//Inherited methods
-	public void showSelectionWindow(){}
-	
-	public void addGenericItem(Object o)
-	{
-		checkBottomCard();
-		SylladexCard card = m.getNextEmptyCard();
-		SylladexItem item = new SylladexItem("ITEM", o, m);
-		card.setItem(item);
-		
+		CaptchalogueCard card = deck.captchalogueItemAndReturnCard(item);
 		stack.addFirst(card);
-		JLabel icon = m.getIconLabelFromItem(item);
-		icons.add(0, icon);
-		m.setIcons(icons);
-		card.setIcon(icon);
-		arrangeCards();
+		card.setLayer(100);
+		card.setLocation(new Point(0, 0));
+		deck.setIcons(stack.toArray());
 	}
 	
-	public void open(SylladexCard card)
+	@Override
+	public void open(CaptchalogueCard card, OpenReason reason)
 	{
-		icons.remove(card.getIcon());
-		icons.trimToSize();
-		m.setIcons(icons);
 		stack.remove(card);
-		arrangeCards();
-		m.open(card);
+		deck.setIcons(stack.toArray());
+		deck.open(card, reason);
+		arrangeCards(true);
 	}
 	
+	@Override
 	public void addCard()
 	{
-		m.addCard();
+		deck.addCard();
 	}
 
-	@Override
-	public void prepare()
+	@Override	
+	public Object[] getCardOrder()
 	{
-		for(String string : items)
-		{
-			if(!string.equals(""))
-			{
-				if(m.getNextEmptyCard()==null) { m.addCard(); }
-				SylladexCard card = m.getNextEmptyCard();
-				SylladexItem item = new SylladexItem(string, m);
-				card.setItem(item);
-				stack.addLast(card);
-				JLabel icon = m.getIconLabelFromItem(item);
-				icons.add(icon);
-				m.setIcons(icons);
-				card.setIcon(icon);
-				arrangeCards();
-			}
-		}
+		return stack.toArray();
 	}
 
-	@Override
-	public ArrayList<String> getItems()
+	private void animatePushOut(SylladexItem item)
 	{
-		ArrayList<String> items = new ArrayList<String>();
-		if(stack.size()>0)
+		arrangeCards(false);
+		
+		if (loading) { return; }
+		
+		for (CaptchalogueCard c : stack)
 		{
-			for(SylladexCard card : stack)
-			{
-				items.add(card.getItem().getSaveString());
-			}
+			if (c != stack.getFirst())
+				deck.bounceCard(c);
 		}
-		else { items.add(""); }
-		return items;
+		
+		JLabel icon = item.getIcon();
+		
+		int xpos = Util.SCREEN_SIZE.width/2 + (25*deck.getCards().size());
+		JLabel arrow = new JLabel(Util.createImageIcon("modi/canon/stack/arrow.gif"));
+		arrow.setBounds(xpos,deck.getDockIconYPosition(),43,60);
+		icon.setBounds(xpos+50,deck.getDockIconYPosition(),43,60);
+		
+		deck.showDock();
+		
+		foreground.add(arrow);
+		foreground.add(icon);
+		foreground.repaint();
+		
+		Animation.waitFor(1000, this, "stack_remove_arrow");
 	}
 
 	//Unique methods
-	public void checkBottomCard()
+	private void arrangeCards(boolean animate)
 	{
-		if(m.getNextEmptyCard()==null)
+		if (loading) { animate = false; }
+		
+		for (CaptchalogueCard c : deck.getCards())
 		{
-			SylladexCard bottomcard = stack.getLast();
-			icons.trimToSize();
-			JLabel icon = new JLabel(bottomcard.getIcon().getIcon());
-
-			int xpos = m.getScreenSize().width/2 + (25*m.getCards().size());
-			arrow = new JLabel(Main.createImageIcon("modi/stack/arrow.gif"));
-			arrow.setBounds(xpos,m.getDockIconYPosition(),43,60);
-			icon.setBounds(xpos+50,m.getDockIconYPosition(),43,60);
-			
-			m.showDock();
-			
-			foreground.add(arrow);
-			foreground.add(icon);
-			foreground.repaint();
-			
-			timer.restart();
-			open(bottomcard);
+			int index = stack.indexOf(c);
+			if (index > -1)
+			{
+				c.setVisible(true);
+				c.setLayer(100 - index);
+				c.setAccessible(false);
+				Point p = new Point(index*23, index*23);
+				if (animate)
+				{
+					c.moveTo(p, AnimationType.BOUNCE);
+				}
+				else
+				{
+					c.setLocation(p);
+				}
+			}
+			else
+			{
+				c.setVisible(false);
+			}
 		}
+		if (stack.size() > 0)
+			stack.getFirst().setAccessible(true);
 	}
 	
-	public void arrangeCards()
-	{
-		ArrayList<SylladexCard> cards = m.getCards();
-		for (SylladexCard card : cards)
-		{
-			int index = stack.indexOf(card);
-			card.setPosition(new Point(index*23, index*23));
-			card.setLayer(100-index);
-			
-			card.setAccessible(false);
-		}
-		if(stack.size()!=0)
-			stack.getFirst().setAccessible(true);
-		m.setCardHolderSize(stack.size()*23 + s.get_card_width(), stack.size()*23 + s.get_card_height());
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getSource().equals(timer))
+		if(e.getActionCommand().equals("stack_remove_arrow"))
 		{
 			foreground.removeAll();
 			foreground.repaint();

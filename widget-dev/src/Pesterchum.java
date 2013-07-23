@@ -1,19 +1,28 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.*;
-import sylladex.*;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import sylladex.Widget;
+import util.Bubble;
+import util.Util;
+import util.Util.OpenReason;
 
 public class Pesterchum extends Widget implements ActionListener
 {
-	private String path;
+	private File logs_folder;
 	private String username;
 	private ArrayList<String> logs;
 	private ArrayList<Bubble> bubbles;
@@ -27,19 +36,19 @@ public class Pesterchum extends Widget implements ActionListener
 	{
 		setImages();
 		
-		if(Main.isWindows())
+		if(Util.isWindows())
 		{
-			path = System.getenv("LOCALAPPDATA") + "\\pesterchum\\logs";
+			logs_folder = new File(System.getenv("LOCALAPPDATA") + "\\pesterchum\\logs");
 		}
-		else if(Main.isMac())
+		else if(Util.isMac())
 		{
-			path = System.getProperty("user.home") + "/Library/Application Support/Pesterchum/logs";
+			logs_folder = new File(System.getProperty("user.home") + "/Library/Application Support/Pesterchum/logs");
 		}
-		else if(Main.isLinux())
+		else if(Util.isLinux())
 		{
-			path = System.getProperty("user.home") + "/.pesterchum/logs";
+			logs_folder = new File(System.getProperty("user.home") + "/.pesterchum/logs");
 		}
-		System.out.println(path);
+		System.out.println(logs_folder);
 		logs = new ArrayList<String>();
 		bubbles = new ArrayList<Bubble>();
 		
@@ -48,15 +57,26 @@ public class Pesterchum extends Widget implements ActionListener
 	
 	private void setImages()
 	{
-		ImageIcon imageicon = Main.createImageIcon("widgets/Pesterchum/image.png");
-		dock_icon = new JLabel(Main.getDockIcon(imageicon.getImage()));
+		ImageIcon imageicon = Util.createImageIcon("widgets/Pesterchum/image.png");
+		dock_icon = new JLabel(Util.getDockIcon(imageicon.getImage()));
 	}
 
 	@Override
 	public void add()
 	{
 		username = JOptionPane.showInputDialog("Pesterchum username:");
-		path = path + fs + username;
+		logs_folder = new File(logs_folder, username);
+		//Check whether directory exists; ask for (relative) path if not.
+		if (!logs_folder.exists())
+		{
+			JFileChooser chooser = new JFileChooser();
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int decision = JFileChooser.CANCEL_OPTION;
+			while (decision != JFileChooser.APPROVE_OPTION)
+				decision = chooser.showDialog(null, "Select");
+			logs_folder = chooser.getSelectedFile();
+		}
+		
 		getFiles();
 		timer.start();
 	}
@@ -66,18 +86,18 @@ public class Pesterchum extends Widget implements ActionListener
 	{
 		username = string;
 		setImages();
-		path = path + fs + username;
+		logs_folder = new File(logs_folder, username);
+		if (!logs_folder.exists())
+			logs_folder = new File(new File("."), username);
 		getFiles();
 		timer.start();
 	}
 	
 	private void getFiles()
-	{
-		File root = new File(path);
-		
-		for(String s : root.list())
+	{		
+		for(String s : logs_folder.list())
 		{
-			File f = new File(path + fs + s + fs + "bbcode");
+			File f = new File(logs_folder + fs + s + fs + "bbcode");
 			
 			for (String t : f.list())
 			{
@@ -89,10 +109,9 @@ public class Pesterchum extends Widget implements ActionListener
 	
 	private void checkFiles()
 	{
-		File root = new File(path);
-		for (String s : root.list())
+		for (String s : logs_folder.list())
 		{
-			File f = new File(root.getPath() + fs + s + fs + "bbcode");
+			File f = new File(logs_folder.getPath() + fs + s + fs + "bbcode");
 			
 			for (String t : f.list())
 			{
@@ -136,12 +155,39 @@ public class Pesterchum extends Widget implements ActionListener
 				int begin = line.indexOf(from) + from.length() + 8;
 				String colour = line.substring(begin, begin + 7);
 				System.out.println(colour);
-				addBubble(contract(from), colour);
-				m.showDock();
+				Bubble b = new Bubble(deck, getDockIcon(), 0);
+				JLabel text = new JLabel("<HTML><FONT COLOR=" + colour + ">" +
+										contract(from) + "</FONT></HTML>");
+				text.setBounds(0, 0, 80, 20);
+				text.setHorizontalAlignment(JLabel.CENTER);
+				text.setVerticalAlignment(JLabel.CENTER);
+				b.getContents().add(text);
+				bubbles.add(b);
+				deck.showDock();
 				arrangeBubbles();
 			}
+			scanner.close();
 		}
 		catch(Exception e){ e.printStackTrace(); }
+	}
+	
+	private void arrangeBubbles()
+	{
+		for (Bubble b : bubbles)
+		{
+			if (!b.isShowing())
+				bubbles.remove(b);
+		}
+		
+		int length = bubbles.size();
+		if (length == 0) { return; }
+		
+		for (int i = 0; i<length; i++)
+		{
+			Bubble b = bubbles.get(i);
+			b.setOffset((int) (getDockIcon().getWidth() *
+					((i+1)/(length+1) - 0.5)));
+		}
 	}
 	
 	private String contract(String s)
@@ -155,41 +201,15 @@ public class Pesterchum extends Widget implements ActionListener
 		}
 		return result.toUpperCase();
 	}
-	
-	private void addBubble(String from, String colour)
-	{
-		bubbles.add(new Bubble(from, colour));
-		arrangeBubbles();
-	}
-	
-	private void arrangeBubbles()
-	{
-		int n = bubbles.size() + 1;
-		int offset = dock_icon.getLocation().x - 60;
-		int i = 1;
-		for(Bubble b : bubbles)
-		{
-			b.x = offset + (50*i/n);
-			b.updatePosition();
-			b.show();
-			i++;
-		}
-	}
-	
-	private void removeBubble(Bubble b)
-	{
-		bubbles.remove(b);
-		b.hide();
-	}
 
 	@Override
-	public void open()
+	public void open(OpenReason reason)
 	{
 		cleanUp();
 	}
 
 	@Override
-	public String getString()
+	public String getName()
 	{
 		return "Pesterchum";
 	}
@@ -209,12 +229,11 @@ public class Pesterchum extends Widget implements ActionListener
 		}
 		bubbles.clear();
 		timer.stop();
-		timer = null;
 	}
 	
 	public JPanel getPanel()
 	{
-		ImageIcon imageicon = Main.createImageIcon("widgets/Pesterchum/image.png");
+		ImageIcon imageicon = Util.createImageIcon("widgets/Pesterchum/image.png");
 		JPanel panel = new JPanel();
 		panel.add(new JLabel(imageicon));
 		panel.setOpaque(false);
@@ -222,10 +241,7 @@ public class Pesterchum extends Widget implements ActionListener
 	}
 	
 	@Override
-	public void mouseClicked(MouseEvent arg0)
-	{
-		m.getModus().open(card);
-	}
+	public void mouseClicked(MouseEvent arg0) {}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0){}
@@ -243,109 +259,5 @@ public class Pesterchum extends Widget implements ActionListener
 		{
 			check();
 		}
-	}
-	
-	private class Bubble implements ActionListener, MouseListener
-	{
-		private JWindow w;
-		private JLayeredPane panel;
-		private JLabel bubble;
-		public int x = 0;
-		private int y = 0;
-		private int offset = 0;
-		private Timer t;
-		private int counter = 0;
-		
-		public Bubble(String from, String colour)
-		{
-			w = new JWindow();
-			w.setLayout(null);
-			w.setSize(80, 101);
-			w.setAlwaysOnTop(true);
-			w.addMouseListener(this);
-			Main.setTransparent(w);
-			
-			panel = new JLayeredPane();
-			panel.setBounds(0,0,80,99);
-			panel.setLayout(null);
-			panel.setOpaque(false);
-			w.add(panel);
-			
-			String path = "widgets/Pesterchum/bubble_top.png"; y = 70; int texty = 47;
-			if(!m.getPreferences().top()){ path = "widgets/Pesterchum/bubble.png"; y = m.getScreenSize().height - 99 - 70; texty = 30; }
-			bubble = new JLabel(Main.createImageIcon(path));
-			JLabel name = new JLabel("<HTML><font color=\"" + colour + "\">" + from + "</font></HTML>");
-			
-			bubble.setBounds(0,0,80,99);
-			bubble.setOpaque(false);
-			panel.setLayer(bubble, 0);
-			panel.add(bubble);
-			
-			name.setBounds(0,texty,80,20);
-			name.setHorizontalAlignment(JLabel.CENTER);
-			panel.setLayer(name, 1);
-			panel.add(name);
-			
-			w.setLocation(x, y);
-			
-			t = new Timer(100, this);
-			t.start();
-		}
-		
-		public void show()
-		{
-			w.setVisible(true);
-		}
-		public void hide()
-		{
-			w.setVisible(false);
-		}
-		
-		public void updatePosition()
-		{
-			String path = "widgets/Pesterchum/bubble_top.png"; y = 70;
-			if(!m.getPreferences().top()){ path = "widgets/Pesterchum/bubble.png"; y = m.getScreenSize().height - 99 - 70; }
-			bubble.setIcon(Main.createImageIcon(path));
-			
-			w.setLocation(x, y);
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			if(e.getSource().equals(t))
-			{
-				if(counter<2)
-				{
-					offset++;
-					counter++;
-				}
-				else if(counter>=2)
-				{
-					offset--;
-					counter++;
-				}
-				if(counter>3)
-				{
-					counter = 0;
-				}
-			}
-			panel.setBounds(0, offset, 80, 99);
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent e)
-		{
-			removeBubble(this);
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent arg0){}
-		@Override
-		public void mouseExited(MouseEvent arg0){}
-		@Override
-		public void mousePressed(MouseEvent arg0){}
-		@Override
-		public void mouseReleased(MouseEvent arg0){}
 	}
 }

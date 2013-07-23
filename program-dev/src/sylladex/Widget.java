@@ -1,33 +1,44 @@
 package sylladex;
 
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import javax.swing.JPanel;
+import java.util.ArrayList;
+
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import ui.MenuItem;
+import util.Util.OpenReason;
 
 public abstract class Widget implements MouseListener
 {
-	protected SylladexCard card;
+	protected CaptchalogueCard card;
 	protected JLabel dock_icon = new JLabel("");
-	protected Main m;
+	protected Main deck;
 	
 	public abstract void prepare();
 	public abstract void add();
 	public abstract void load(String string);
-	public abstract void open();
-	public abstract String getString();
+	public abstract void open(OpenReason reason);
+	public abstract String getName();
 	public abstract String getSaveString();
 	
-	public void setCard(SylladexCard newcard)
+	public String canonCaptchaCodeOverride()
+	{
+		return null;
+	}
+	
+	public void setCard(CaptchalogueCard newcard)
 	{
 		card = newcard;
 	}
 	
 	public void setMain(Main m)
 	{
-		this.m = m;
+		this.deck = m;
 	}
 	
-	public SylladexCard getCard()
+	public CaptchalogueCard getCard()
 	{
 		return card;
 	}
@@ -38,4 +49,15 @@ public abstract class Widget implements MouseListener
 	{
 		return dock_icon;
 	}
+	
+	public ArrayList<MenuItem> getExtraMenuItems()
+	{
+		return new ArrayList<MenuItem>();
+	}
+	
+	public void mouseClicked(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {}
+	public void mouseEntered(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {}
 }

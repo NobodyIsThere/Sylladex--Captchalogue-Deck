@@ -3,151 +3,137 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.ArrayList;
-import javax.swing.*;
-import sylladex.*;
-import sylladex.Animation.AnimationType;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class EncryptionModus extends FetchModus implements KeyListener
-{
-	private FetchModusSettings s;
-	
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JWindow;
+import javax.swing.Timer;
+
+import sylladex.CaptchalogueCard;
+import sylladex.FetchModus;
+import sylladex.Main;
+import sylladex.SylladexItem;
+import util.Animation;
+import util.Animation.AnimationType;
+import util.DragListener;
+import util.Util;
+import util.Util.OpenReason;
+
+public class EncryptionModus extends FetchModus implements KeyListener, MouseListener
+{	
 	private boolean enabled = true;
 	private boolean openenabled = true;
-	private ArrayList<SylladexCard> cards;
-	private JWindow window;
-	private JLayeredPane pane;
+	private JWindow window = new JWindow();
+	private JLayeredPane pane = new JLayeredPane();
 	
-	private JFrame hacking = new JFrame();
+	private JWindow hacking;
 	private Timer timer = new Timer(1500, this);
 	private JLabel pbar;
-	private int progress;
-	private SylladexCard hackcard;
+	private int progress = 0;
+	private CaptchalogueCard hackcard;
+	private OpenReason current_reason;
 	
 	public EncryptionModus(Main m)
 	{
-		this.m = m;
-		createModusSettings();
-		icons = new ArrayList<JLabel>();
+		super(m);
 	}
 	
-	private void createModusSettings()
+	@Override
+	public void initialSettings()
 	{
-		s = new FetchModusSettings();
+		settings.set_dock_text_image("modi/canon/encryption/docktext.png");
+		settings.set_card_image("modi/canon/encryption/card.png");
+		settings.set_card_back_image("modi/canon/encryption/back.png");
 		
-		s.set_bottom_dock_image("modi/encryption/dockbg.png");
-		s.set_top_dock_image("modi/encryption/dockbg_top.png");
-		s.set_dock_text_image("modi/encryption/docktext.png");
-		s.set_card_image("modi/encryption/card.png");
-		s.set_card_back_image("modi/encryption/back.png");
+		settings.set_modus_image("modi/canon/encryption/modus.png");
+		settings.set_name("Encryption");
+		settings.set_author("gumptiousCreator");
 		
-		s.set_modus_image("modi/encryption/modus.png");
-		s.set_name("Encryption");
-		s.set_author("gumptiousCreator");
+		settings.set_preferences_file("modi/prefs/encryptionprefs.txt");
 		
-		s.set_item_file("modi/items/queuestack.txt");
-		s.set_preferences_file("modi/prefs/encryptionprefs.txt");
+		settings.set_background_color(0, 0, 0);
+		settings.set_secondary_color(85, 85, 85);
+		settings.set_text_color(255, 255, 255);
 		
-		s.set_background_color(75, 75, 75);
+		settings.set_initial_card_number(12);
+		settings.set_origin(20, 120);
 		
-		s.set_initial_card_number(12);
-		s.set_origin(20, 120);
+		settings.set_cards_draggable(false);
 		
-		s.set_cards_draggable(false);
-		
-		s.set_card_size(94, 120);
-	}
-	
-	public FetchModusSettings getModusSettings()
-	{
-		return s;
+		settings.set_card_size(94, 120);
 	}
 	
 	@Override
 	public void prepare()
 	{
-		cards = new ArrayList<SylladexCard>();
-		
-		window = new JWindow();
-		window.setBounds(getModusSettings().get_origin().x,getModusSettings().get_origin().y,132,m.getScreenSize().height);
+		window.setBounds(settings.get_origin().x, settings.get_origin().y,
+						132,Util.SCREEN_SIZE.height);
 		window.setLayout(null);
 		window.setAlwaysOnTop(true);
-		Main.setTransparent(window);
+		window.setBackground(Util.COLOR_TRANSPARENT);
 		
-		pane = new JLayeredPane();
-		pane.setBounds(0,0,132,m.getScreenSize().height);
+		pane.setBounds(0, 0, 132, Util.SCREEN_SIZE.height);
 		pane.setLayout(null);
 		
 		window.add(pane);
-		
-		loadItems();
 	}
 	
-	private void loadItems()
+	@Override
+	public void ready()
 	{
-		for(String string : items)
+		deck.setIcons(deck.getCards().toArray());
+	}
+	
+	private void animate(CaptchalogueCard card)
+	{
+		card.setLocation(new Point(5,5));
+		deck.bounceCard(card);
+		deck.addAnimation(new Animation(AnimationType.WAIT, 500, this, "encryption_card_bounce"));
+	}
+	
+	@Override
+	public boolean captchalogue(SylladexItem item)
+	{
+		if (deck.isFull()) { return false; }
+		
+		if (loading)
 		{
-			if(!string.equals(""))
-			{
-				if(m.getNextEmptyCard()==null) { m.addCard(); }
-				SylladexCard card = m.getNextEmptyCard();
-				SylladexItem item = new SylladexItem(string, m);
-				card.setItem(item);
-				cards.add(card);
-				JLabel icon = m.getIconLabelFromItem(item);
-				icons.add(icon);
-				m.setIcons(icons);
-				card.setIcon(icon);
-			}
+			deck.captchalogueItem(item);
+			return true;
 		}
-	}
-	
-	private void animate(SylladexCard card)
-	{
-		card.setPosition(new Point(5,5));
-		card.setLayer(cards.indexOf(card));
-		m.setCardHolderSize(132, 120);
-		Animation a2 = new Animation(AnimationType.WAIT, 500, this, "card bounce");
-		new Animation(card, new Point(0,0), AnimationType.MOVE, a2, "run").run();
-	}
-	
-	@Override
-	public void addGenericItem(Object o)
-	{
-		if(enabled==false){ return; }
+		
+		if (enabled==false){ return false; }
+		
 		enabled = false;
-		if(m.getNextEmptyCard()==null){ return; }
-		SylladexCard card = m.getNextEmptyCard();
-		SylladexItem item = new SylladexItem("ITEM", o, m);
-		card.setItem(item);
-		
-		cards.add(card);
-		JLabel icon = m.getIconLabelFromItem(item);
-		icons.add(icon);
-		m.setIcons(icons);
-		card.setIcon(icon);
-		
+		CaptchalogueCard card = deck.captchalogueItemAndReturnCard(item);
 		animate(card);
+		return true;
 	}
 	
 	@Override
-	public void open(SylladexCard card)
+	public void open(CaptchalogueCard card, OpenReason reason)
 	{
 		if(openenabled==false){ return; }
 		openenabled = false;
 		
 		progress = 0;
 
-		hacking = new JFrame();
+		hacking = new JWindow();
 		hacking.setBounds(0, 0, 296, 376);
 		hacking.setLocationRelativeTo(null);
 		hacking.setLayout(null);
-		//Main.setTransparent(hacking);
+		hacking.setBackground(Util.COLOR_TRANSPARENT);
 		
 		JLayeredPane panel = new JLayeredPane();
 		panel.setBounds(0,0,296,376);
 		panel.setLayout(null);
-		JLabel animation = new JLabel(Main.createImageIcon("modi/encryption/hacking.gif"));
+		JLabel animation = new JLabel(Util.createImageIcon("modi/canon/encryption/hacking.gif"));
+		DragListener l = new DragListener(hacking);
+		animation.addMouseListener(l);
+		animation.addMouseListener(this);
+		animation.addMouseMotionListener(l);
 		animation.setBounds(0,0,296,376);
 		panel.setLayer(animation, 0);
 		panel.add(animation);
@@ -163,99 +149,81 @@ public class EncryptionModus extends FetchModus implements KeyListener
 		hacking.setVisible(true);
 		
 		hackcard = card;
+		current_reason = reason;
 		timer = new Timer(100, this);
-		timer.setActionCommand("progress");
+		timer.setActionCommand("encryption_progress");
 		timer.restart();
 		
-		animation.setFocusable(true);
-		animation.requestFocusInWindow();
-		animation.addKeyListener(this);
-		animation.setFocusTraversalKeysEnabled(false);
+		panel.setFocusable(true);
+		panel.requestFocusInWindow();
+		panel.addKeyListener(this);
+		panel.setFocusTraversalKeysEnabled(false);
 	}
 	
-	private void actuallyOpen(SylladexCard card)
+	private void actuallyOpen(CaptchalogueCard card, OpenReason reason)
 	{
-		icons.remove(card.getIcon());
-		icons.trimToSize();
-		m.setIcons(icons);
-		cards.remove(card);
-		m.open(card);
+		deck.open(card, reason);
+		deck.setIcons(deck.getCards().toArray());
 	}
 	
 	@Override
 	public void addCard()
 	{
-		m.addCard();
+		deck.addCard();
 	}
 	
 	@Override
-	public void showSelectionWindow(){}
-	
-	@Override
-	public ArrayList<String> getItems()
+	public Object[] getCardOrder()
 	{
-		hacking.setVisible(false);
-		hacking.removeAll();
-		timer.stop();
-		
-		ArrayList<String> items = new ArrayList<String>();
-		if(cards.size()>0)
-		{
-			for(SylladexCard card : cards)
-			{
-				items.add(card.getItem().getSaveString());
-			}
-		}
-		else { items.add(""); }
-		return items;
+		return deck.getCards().toArray();
 	}
 
 	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getActionCommand().equals("card bounce"))
+		if (e.getActionCommand().equals("encryption_card_bounce"))
 		{
 			pane.removeAll();
 			pane.revalidate();
 			pane.repaint();
 			
-			JLabel cardbg = new JLabel(Main.createImageIcon(getModusSettings().get_card_image()));
+			JLabel cardbg = new JLabel(Util.createImageIcon(settings.get_card_image()));
 			cardbg.setBounds(0,0,94,120);
 			pane.setLayer(cardbg, 0);
 			pane.add(cardbg);
 			
-			JLabel animation = new JLabel(Main.createImageIcon("modi/encryption/animation.gif"));
+			JLabel animation = new JLabel(Util.createImageIcon("modi/canon/encryption/animation.gif"));
 			animation.setBounds(8,11,68,95);
 			pane.setLayer(animation, 1);
 			pane.add(animation);
 			
 			window.setVisible(true);
-			m.setCardHolderSize(0, 0);
+			deck.setCardHolderSize(0, 0);
 			
-			new Animation(AnimationType.WAIT, 500, this, "card wait").run();
+			new Animation(AnimationType.WAIT, 500, this, "encryption_card_wait").run();
 		}
-		else if(e.getActionCommand().equals("card wait"))
+		else if (e.getActionCommand().equals("encryption_card_wait"))
 		{
 			pane.removeAll();
 			pane.revalidate();
 			pane.repaint();
 			
-			JLabel vault = new JLabel(Main.createImageIcon("modi/encryption/vault.gif"));
+			JLabel vault = new JLabel(Util.createImageIcon("modi/canon/encryption/vault.gif"));
 			vault.setBounds(0,0,132,116);
 			pane.setLayer(vault, 0);
 			pane.add(vault);
 			
-			int height = m.getScreenSize().height;
-			Animation a3 = new Animation(vault, new Point(0,height), AnimationType.MOVE, this, "vault down");
-			Animation a2 = new Animation(vault, new Point(0,3*height/4), AnimationType.MOVE, a3, "run");
-			new Animation(vault, new Point(0, height/4), AnimationType.MOVE, a2, "run").run();
+			int height = Util.SCREEN_SIZE.height;
+			deck.addAnimation(new Animation(vault, new Point(0, height/4), AnimationType.MOVE, null, null));
+			deck.addAnimation(new Animation(vault, new Point(0, 3*height/4), AnimationType.MOVE, null, null));
+			deck.addAnimation(new Animation(vault, new Point(0, height), AnimationType.MOVE, this, "encryption_vault_down"));
 		}
-		else if(e.getActionCommand().equals("vault down"))
+		else if (e.getActionCommand().equals("encryption_vault_down"))
 		{
 			enabled = true;
 		}
-		else if(e.getActionCommand().equals("progress"))
+		else if (e.getActionCommand().equals("encryption_progress"))
 		{
 			progress-=Math.random()*4;
 			if(progress<0){ progress = 0; }
@@ -266,7 +234,7 @@ public class EncryptionModus extends FetchModus implements KeyListener
 			
 			if(progress==100)
 			{
-				actuallyOpen(hackcard);
+				actuallyOpen(hackcard, current_reason);
 				openenabled=true;
 				hacking.setVisible(false);
 				progress = 0;
@@ -286,5 +254,29 @@ public class EncryptionModus extends FetchModus implements KeyListener
 
 	@Override
 	public void keyTyped(KeyEvent e){}
+
+	@Override
+	public void mouseClicked(MouseEvent e)
+	{
+		if (e.getButton() == MouseEvent.BUTTON2)
+		{
+			openenabled = true;
+			hacking.setVisible(false);
+			progress = 0;
+			timer.stop();
+		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {}
+
+	@Override
+	public void mouseExited(MouseEvent e) {}
 	
 }

@@ -1,60 +1,94 @@
-import sylladex.*;
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 
-public class RPObject extends Widget implements MouseListener
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
+
+import sylladex.Widget;
+import util.Util;
+import util.Util.OpenReason;
+
+public class RPObject extends Widget
 {
-	private String string = "RP";
 	private File img;
-	private final JFileChooser image_chooser = new JFileChooser();
+	private String name;
 	
-	public void open(){}
-	
-	public void prepare(){}
-	
-	private void setImages()
-	{
-		ImageIcon icon = Main.createImageIcon(img.getPath());
-		dock_icon = new JLabel(Main.getDockIcon(icon.getImage()));
-	}
-	
-	public JPanel getPanel()
-	{
-		JPanel panel = new JPanel();
-		ImageIcon icon = Main.createImageIcon(img.getPath());
-		int cardwidth = m.getModus().getModusSettings().get_card_width();
-		int cardheight = m.getModus().getModusSettings().get_card_height();
-		Icon image = Main.getSizedIcon(icon.getImage(), 24*cardwidth/37, 100*cardheight/188);
-		JLabel image_label = new JLabel(image);
-		image_label.setBounds(0, 0, 24*cardwidth/37, 100*cardheight/188);
-		panel.setLayout(null);
-		panel.setOpaque(false);
-		panel.add(image_label);
-		return panel;
-	}
+	@Override
+	public void prepare() {}
 
 	@Override
-	public void load(String savestring)
+	public void add() {}
+
+	@Override
+	public void load(String string)
 	{
-		string = savestring.substring(0, savestring.indexOf(";"));
-		img = new File(savestring.substring(savestring.indexOf(";")+1));
+		name = string.substring(0, string.indexOf(";"));
+		String path = string.substring(string.indexOf(";") + 1);
+		img = new File(path);
 		if(img.exists())
 			setImages();
 	}
 	
-	@Override
-	public String getString()
+	private void setImages()
 	{
-		return string;
+		dock_icon.setIcon(Util.getDockIcon(Util.createImageIcon(img.getAbsolutePath()).getImage()));
+	}
+
+	@Override
+	public void open(OpenReason reason) {}
+
+	@Override
+	public String getName()
+	{
+		if (name == null)
+		{
+			name = JOptionPane.showInputDialog("Enter a name for the item.");
+		}
+		return name;
 	}
 
 	@Override
 	public String getSaveString()
 	{
-		return string + ";" + img.getPath();
+		try
+		{
+			if (img.getCanonicalPath().startsWith(new File(".").getAbsolutePath().replace(".", "")))
+			{
+				return getName() + ";" +
+						new File(".").toPath().toAbsolutePath().relativize(img.toPath().toAbsolutePath()).toString().replace("../", "");
+			}
+			return getName() + ";" + img.getCanonicalPath();
+		}
+		catch (IOException x) { x.printStackTrace(); }
+		return getName() + ";widgets/RPObject/missing.gif";
+	}
+
+	@Override
+	public JPanel getPanel()
+	{
+		if (img == null)
+		{
+			ImageFileFilter filter = new ImageFileFilter();
+			JFileChooser image_chooser = new JFileChooser();
+			image_chooser.setFileFilter(filter);
+			int decision = image_chooser.showOpenDialog(dock_icon);
+			if(decision==JFileChooser.APPROVE_OPTION)
+			{
+				img = image_chooser.getSelectedFile();
+				setImages();
+			}
+			else
+			{
+				img = new File("widgets/RPObject/missing.gif");
+				setImages();
+			}
+		}
+		int card_width = deck.getModus().getSettings().get_card_width();
+		int card_height = deck.getModus().getSettings().get_card_height();
+		return Util.getCardPanelFromImage(Util.createImageIcon(img.getAbsolutePath()).getImage(),
+				card_width, card_height);
 	}
 	
 	private class ImageFileFilter extends FileFilter
@@ -85,51 +119,5 @@ public class RPObject extends Widget implements MouseListener
 			return "Images (.gif, .jpeg, .jpg, .png)";
 		}
 		
-	}
-	
-
-	@Override
-	public void mouseClicked(MouseEvent e)
-	{
-		if(card.isAccessible())
-		{
-			if(e.getButton()==MouseEvent.BUTTON1)
-			{
-				m.getModus().open(card);
-			}
-		}
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e){}
-
-	@Override
-	public void mouseExited(MouseEvent e){}
-
-	@Override
-	public void mousePressed(MouseEvent e){}
-
-	@Override
-	public void mouseReleased(MouseEvent e){}
-
-	@Override
-	public void add()
-	{
-		//Ask for a name
-		string = JOptionPane.showInputDialog("Enter a name for the item.");
-		//Accept an image
-		ImageFileFilter filter = new ImageFileFilter();
-		image_chooser.setFileFilter(filter);
-		int decision = image_chooser.showOpenDialog(dock_icon);
-		if(decision==JFileChooser.APPROVE_OPTION)
-		{
-			img = image_chooser.getSelectedFile();
-			setImages();
-		}
-		else
-		{
-			img = new File("widgets/RPObject/missing.gif");
-			setImages();
-		}
 	}
 }

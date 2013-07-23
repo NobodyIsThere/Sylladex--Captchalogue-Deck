@@ -1,0 +1,15 @@
+BOOL :false
+BOOL :true
+BOOL :true
+INT :0
+INT :1
+BOOL :true
+BOOL :true
+BOOL :true
+BOOL :true
+INT :6
+STRING :canon/HashMapModus
+INT :0
+INT :2
+INT :4
+INT :3

@@ -1,3 +1,0 @@
-[FILE]C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Skype\Skype.lnk[NAME]Skype.lnk
-[WIDGET]widgets/Pesterchum.class[/WIDGET]gumptiousCreator[NAME]Pesterchum
-[WIDGET]widgets/UpdateChecker.class[/WIDGET]300;true;MSPA_HOME;6;6726;6;6716;u;[NAME]Update Checker

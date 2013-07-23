@@ -1,0 +1,30 @@
+<synth>
+	<!-- Style that all regions will use -->
+	<style id="backingStyle">
+		<!-- Make all the regions transparent -->
+		<opaque value="FALSE"/>
+		<font name="Dialog" size="12"/>
+		<state>
+			<!-- Provide default colors -->
+			<color value="#D8D987" type="BACKGROUND"/>
+			<color value="RED" type="FOREGROUND"/>
+		</state>
+	</style>
+	<bind style="backingStyle" type="region" key=".*"/>
+	<style id="buttonStyle">
+		<insets top="1" left="4" right="1" bottom="3"/>
+		<state value="PRESSED">
+			<imagePainter method="buttonBackground" path="button_pressed.png" sourceInsets="1 1 1 1"/>
+		</state>
+		<state>
+			<imagePainter method="buttonBackground" path="button.png" sourceInsets="4 3 2 4"/>
+		</state>
+	</style>
+	<!-- Bind buttonStyle to all JButtons -->
+	<bind style="buttonStyle" type="region" key="button"/>
+	
+	<style id="labelStyle">
+		
+	</style>
+	<bind style="labelStyle" type="region" key="label"/>
+</synth>

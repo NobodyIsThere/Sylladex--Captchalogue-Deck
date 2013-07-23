@@ -1,198 +1,198 @@
-import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.LinkedList;
+
 import javax.swing.JLabel;
-import javax.swing.Timer;
-import sylladex.*;
+
+import sylladex.CaptchalogueCard;
+import sylladex.FetchModus;
+import sylladex.Main;
+import sylladex.SylladexItem;
+import util.Animation;
+import util.Animation.AnimationType;
+import util.Util;
+import util.Util.OpenReason;
 
 public class Queue extends FetchModus implements ActionListener
 {
-	//Queue stuff
-	private LinkedList<SylladexCard> queue = new LinkedList<SylladexCard>();
-	private FetchModusSettings s;
+	private LinkedList<CaptchalogueCard> queue = new LinkedList<CaptchalogueCard>();
 	
-	private JLabel arrow;
-	private Timer timer = new Timer(1000, this);
+	private boolean cursor_within_cards = false;
 	
 	public Queue(Main m)
 	{
-		this.m = m;
-		createModusSettings();
-		icons = new ArrayList<JLabel>();
-	}
-	
-	private void createModusSettings()
-	{
-		s = new FetchModusSettings();
-		
-		s.set_bottom_dock_image("modi/queue/dockbg.png");
-		s.set_top_dock_image("modi/queue/dockbg_top.png");
-		s.set_dock_text_image("modi/queue/docktext.png");
-		s.set_card_image("modi/queue/card.png");
-		s.set_card_back_image("modi/queue/back.png");
-		
-		s.set_modus_image("modi/queue/modus.png");
-		s.set_name("Queue");
-		s.set_author("gumptiousCreator");
-		
-		s.set_item_file("modi/items/queuestack.txt");
-		s.set_preferences_file("modi/prefs/queueprefs.txt");
-		
-		s.set_background_color(255, 96, 0);
-		
-		s.set_initial_card_number(4);
-		s.set_origin(20, 120);
-	}
-	
-	public FetchModusSettings getModusSettings()
-	{
-		return s;
+		super(m);
 	}
 	
 	@Override
-	public void prepare()
+	public void initialSettings()
 	{
-		for(String string : items)
-		{
-			if(!string.equals(""))
-			{
-				if(m.getNextEmptyCard()==null){ m.addCard(); }
-				SylladexCard card = m.getNextEmptyCard();
-				SylladexItem item = new SylladexItem(string, m);
-				card.setItem(item);
-				queue.addLast(card);
-				JLabel icon = m.getIconLabelFromItem(item);
-				icons.add(icon);
-				m.setIcons(fillIcons());
-				card.setIcon(icon);
-				arrangeCards();
-			}
-		}
-	}
-
-	public void addGenericItem(Object o)
-	{
-		checkBottomCard();
-		SylladexCard card = m.getNextEmptyCard();
-		SylladexItem item = new SylladexItem("ITEM", o, m);
-		card.setItem(item);
+		settings.set_dock_text_image("modi/canon/queue/docktext.png");
+		settings.set_card_image("modi/canon/queue/card.png");
+		settings.set_card_back_image("modi/canon/queue/back.png");
 		
-		queue.addFirst(card);
-		JLabel icon = m.getIconLabelFromItem(item);
-		icons.add(queue.indexOf(card), icon);
-		m.setIcons(fillIcons());
-		card.setIcon(icon);
-		arrangeCards();
+		settings.set_modus_image("modi/canon/queue/modus.png");
+		settings.set_name("Queue");
+		settings.set_author("gumptiousCreator");
+		
+		settings.set_preferences_file("modi/prefs/queueprefs.txt");
+		
+		settings.set_background_color(255, 96, 0);
+		settings.set_secondary_color(207, 86, 12);
+		settings.set_text_color(183, 255, 253);
+		
+		settings.set_initial_card_number(4);
+		settings.set_origin(20, 120);
+	}
+	
+	@Override
+	public void prepare() {}
+	
+	@Override
+	public void ready()
+	{
+		deck.setIcons(getCardOrder());
 	}
 
-	public void showSelectionWindow(){}
-
-	public void open(SylladexCard card)
+	@Override
+	public boolean captchalogue(SylladexItem item)
 	{
-		icons.remove(card.getIcon());
-		icons.trimToSize();
-		m.setIcons(fillIcons());
+		if (!deck.isFull())
+		{
+			finishCaptchalogue(item);
+			arrangeCards(true);
+		}
+		else
+		{
+			CaptchalogueCard card = queue.getLast();
+			SylladexItem last_item = card.getItem();
+			open(card, OpenReason.MODUS_PUSH);
+			finishCaptchalogue(item);
+			animatePushOut(last_item);
+		}
+		return true;
+	}
+	
+	private void finishCaptchalogue(SylladexItem item)
+	{
+		CaptchalogueCard card = deck.captchalogueItemAndReturnCard(item);
+		queue.addFirst(card);
+		card.setLayer(100);
+		card.setLocation(new Point(0, 0));
+		deck.setIcons(getCardOrder());
+	}
+
+	@Override
+	public void open(CaptchalogueCard card, OpenReason reason)
+	{
+		deck.setIcons(getCardOrder());
 		queue.remove(card);
-		arrangeCards();
-		m.open(card);
+		deck.open(card, reason);
+		arrangeCards(true);
+		deck.setIcons(getCardOrder());
 	}
 	
 	public void addCard()
 	{
-		m.addCard();
+		deck.addCard();
 	}
 
 	@Override
-	public ArrayList<String> getItems()
+	public Object[] getCardOrder()
 	{
-		ArrayList<String> items = new ArrayList<String>();
-		if(queue.size()>0)
-		{
-			for(SylladexCard card : queue)
-			{
-				items.add(card.getItem().getSaveString());
-			}
-		}
-		else { items.add(""); }
-		return items;
-	}
-
-	//Unique methods
-	public void checkBottomCard()
-	{
-		if(m.getNextEmptyCard()==null)
-		{
-			SylladexCard bottomcard = queue.getLast();
-			JLabel icon = new JLabel(bottomcard.getIcon().getIcon());
-
-			int xpos = m.getScreenSize().width/2 + (25*m.getCards().size());
-			arrow = new JLabel(Main.createImageIcon("modi/stack/arrow.gif"));
-			arrow.setBounds(xpos,m.getDockIconYPosition(),43,60);
-			icon.setBounds(xpos+50,m.getDockIconYPosition(),43,60);
-			
-			m.showDock();
-			
-			foreground.setLayout(null);
-			foreground.add(arrow);
-			foreground.add(icon);
-			foreground.repaint();
-			
-			timer.restart();
-			open(bottomcard);
-		}
-	}
-	
-	public void arrangeCards()
-	{
-		ArrayList<SylladexCard> cards = m.getCards();
-		for (SylladexCard card : cards)
-		{
-			int index = queue.indexOf(card);
-			card.setPosition(new Point(index*19, index*5));
-			card.setLayer(100-index);
-			
-			card.setAccessible(false);
-		}
-		if(queue.size()!=0)
-			queue.getLast().setAccessible(true);
-		m.setCardHolderSize(queue.size()*23 + 2*s.get_card_width(), queue.size()*10 + s.get_card_height());
-	}
-	
-	@SuppressWarnings("unchecked")
-	private ArrayList<JLabel> fillIcons()
-	{
-		ArrayList<JLabel> newicons = (ArrayList<JLabel>) icons.clone();
-		newicons.trimToSize();
-		while(newicons.size()<m.getCards().size())
-		{
-			newicons.add(0, new JLabel(""));
-		}
+		Object[] icons = queue.toArray();
+		Object[] newicons = new Object[deck.getCards().size()];
+		if (!deck.isEmpty())
+			System.arraycopy(icons, 0, newicons, deck.getCards().size() - queue.size(), icons.length);
 		return newicons;
 	}
 
+	//Unique methods
+	public void animatePushOut(SylladexItem item)
+	{
+		arrangeCards(false);
+		
+		if (loading) { return; }
+		
+		deck.bounceCard(queue.getLast());
+		
+		JLabel icon = item.getIcon();
+		
+		int xpos = Util.SCREEN_SIZE.width/2 + (25*deck.getCards().size());
+		JLabel arrow = new JLabel(Util.createImageIcon("modi/canon/stack/arrow.gif"));
+		arrow.setBounds(xpos,deck.getDockIconYPosition(),43,60);
+		icon.setBounds(xpos+50,deck.getDockIconYPosition(),43,60);
+		
+		deck.showDock();
+		
+		foreground.add(arrow);
+		foreground.add(icon);
+		foreground.repaint();
+		
+		Animation.waitFor(1000, this, "queue_remove_arrow");
+	}
+	
+	public void arrangeCards(boolean animate)
+	{
+		if (loading) { animate = false; }
+		
+		for (CaptchalogueCard card : deck.getCards())
+		{
+			int index = queue.indexOf(card);
+			if (index > -1)
+			{
+				Point p = new Point(index*19, index*5);
+				if (animate)
+				{
+					card.moveTo(p, AnimationType.BOUNCE);
+				}
+				else
+				{
+					card.setLocation(p);
+				}
+				card.setLayer(100-index);
+				card.setAccessible(false);
+				card.setVisible(true);
+			}
+			else
+			{
+				card.setVisible(false);
+			}
+		}
+		if (queue.size() > 0)
+			queue.getLast().setAccessible(true);
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getSource().equals(timer))
+		if (e.getActionCommand().equals("queue_remove_arrow"))
 		{
 			foreground.removeAll();
 			foreground.revalidate();
 			foreground.repaint();
 		}
-		else if(e.getActionCommand().equals("card mouse enter"))
+		else if (e.getActionCommand().equals(Util.ACTION_CARD_MOUSE_ENTER))
 		{
 			if(queue.size()>1)
 			{
-				SylladexCard card = queue.getLast();
-				Point destination = new Point((queue.indexOf(card)-1)*19 + s.get_card_width(), card.getPosition().y);
-				if(!card.getPosition().equals(destination))
-				{ card.setPosition(new Point((queue.indexOf(card)-1)*19 + s.get_card_width(), card.getPosition().y)); }
+				cursor_within_cards = true;
+				CaptchalogueCard card = queue.getLast();
+				Point destination = new Point((queue.indexOf(card)-1)*19 + settings.get_card_width(), card.getLocation().y);
+				if(!card.getLocation().equals(destination))
+				{ card.moveTo(new Point((queue.indexOf(card)-1)*19 + settings.get_card_width(), card.getLocation().y), AnimationType.MOVE); }
 			}
 		}
-		else if(e.getActionCommand().equals("card mouse exit"))
+		else if(e.getActionCommand().equals(Util.ACTION_CARD_MOUSE_EXIT))
 		{
-			arrangeCards();
+			cursor_within_cards = false;
+			Animation.waitFor(10, this, "queue_check_mouse");
+		}
+		else if (e.getActionCommand().equals("queue_check_mouse"))
+		{
+			if (!cursor_within_cards)
+				arrangeCards(true);
 		}
 	}
 }

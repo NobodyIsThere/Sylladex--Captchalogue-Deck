@@ -1,14 +1,45 @@
 package sylladex;
-import java.util.*;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.net.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Scanner;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import ui.SButton;
+import util.RW;
+import util.Util;
 
 public class DeckPreferences implements ActionListener, WindowListener, ChangeListener
 {
@@ -16,30 +47,67 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	private JLabel preview;
 	private JLabel author;
 	private FetchModus modus;
-	private FetchModusSettings msettings;
 	
-	private Main m;
+	private Main deck;
 	
-	private static final String core_prefs_file = "modi/prefs/preferences.txt";
+	private static final File core_prefs_file = new File("preferences/preferences.txt");
+	private static final File item_file = new File("files/index.txt");
+	
+	// Combo box choices
+	// Captchalogue type
+	public static final int LINK = 0;
+	public static final int COPY = 1;
+	public static final int MOVE = 2;
+	
+	// Click actions
+	public static final int OPEN = 0;
+	public static final int OPEN_AND_KEEP = 1;
+	public static final int OPEN_AND_EJECT = 2;
+	public static final int FLIP = 3;
+	public static final int POPUP_MENU = 4;
+	
+	// Main preferences
+	private static final int PREF_TOP = 0;
+	private static final int PREF_AUTOHIDE_DOCK = 1;
+	private static final int PREF_ALWAYS_ON_TOP_DOCK = 2;
+	private static final int PREF_OFFSET = 3;
+	private static final int PREF_CAPTCHALOGUE_MODE = 4;
+	private static final int PREF_NAME_ITEMS = 5;
+	private static final int PREF_AUTO_CAPTCHA = 6;
+	private static final int PREF_AUTOHIDE_CARDS = 7;
+	private static final int PREF_ALWAYS_ON_TOP_CARDS = 8;
+	private static final int PREF_NUMBER_OF_CARDS = 9;
+	private static final int PREF_FETCHMODUS = 10;
+	
+	private static final int PREF_LEFT_CLICK = 11;
+	private static final int PREF_LEFT_MOD_CLICK = 12;
+	private static final int PREF_RIGHT_CLICK = 13;
+	private static final int PREF_RIGHT_MOD_CLICK = 14;
 	
 	//Core preferences
 		//Declarations
-			private HashMap<String,String> core_preferences = new HashMap<String,String>();
+			private ArrayList<Object> core_preferences = new ArrayList<Object>();
 			//Dock
-				private boolean top; private JComboBox topbox;
-				private boolean autohide_dock; private JCheckBox ahdock;
-				private boolean always_on_top_dock; private JCheckBox aotdock;
-				private boolean usb_mode; private JCheckBox usbmode;
-				private int offset; private JSlider dock_offset;
-				private boolean name_items; private JCheckBox nameitems;
-				private boolean auto_captcha; private JCheckBox autocaptcha;
+				private JComboBox<String> topbox;
+				private JCheckBox ahdock;
+				private JCheckBox aotdock;
+				private JComboBox<String> captchalogue_mode;
+				private JSlider dock_offset;
+				private JCheckBox nameitems;
+				private JCheckBox autocaptcha;
 			//Cards
-				private boolean autohide_cards; private JCheckBox ahcards;
-				private boolean always_on_top_cards; private JCheckBox aotcards;
+				private JCheckBox ahcards;
+				private JCheckBox aotcards;
 			//Modus
-				private String fetchmodus = "StackModus"; private JButton modusbutton;
+				private JButton modusbutton;
+			//Mouse
+				private JComboBox<String> leftclick;
+				private JComboBox<String> leftmodclick;
+				private JComboBox<String> rightclick;
+				private JComboBox<String> rightmodclick;
 		//Swing
 			private JPanel sylladex_panel = new JPanel();
+			private JPanel mouse_panel = new JPanel();
 			private JPanel about_panel = new JPanel();
 	//Modus preferences
 		//Declarations
@@ -51,167 +119,123 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	public DeckPreferences(Main m)
 	{
 		loadPreferences();
-		this.m = m;
+		this.deck = m;
 		//Find the modus from loaded preferences and instantiate
-		try
-		{
-			File classes = new File("modi/");
-			URL url = classes.toURI().toURL();
-			URL[] urls = new URL[] {url};
-			ClassLoader cl = new URLClassLoader(urls);
-			Class<?> custom_modus = cl.loadClass(fetchmodus);
-			modus = (FetchModus) custom_modus.getConstructor(m.getClass()).newInstance(m);
-			msettings = modus.getModusSettings();
-			loadItems();
-		}
-		catch (MalformedURLException e)
-		{
-			e.printStackTrace();
-		}
-		catch (ClassNotFoundException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IllegalArgumentException e){e.printStackTrace();}
-		catch (SecurityException e){e.printStackTrace();}
-		catch (InvocationTargetException e){e.printStackTrace();}
-		catch (NoSuchMethodException e){e.printStackTrace();}
-		catch (InstantiationException e){e.printStackTrace();}
-		catch (IllegalAccessException e){e.printStackTrace();}
+		loadModus((String) core_preferences.get(PREF_FETCHMODUS));
+		loadItems();
 		
 		createPreferencesFrame();
 	}
 	
-	private void changeModus(Class<? extends FetchModus> c)
+	private void loadModus(String modus_classname)
 	{
-		fetchmodus = c.getSimpleName();
-		setPreferencesHashMap();
-		savePreferences();
-		cleanUp();
-		modus_preferences = new ArrayList<String>();
-		modus_items = new ArrayList<String>();
+		URLClassLoader cl = null;
 		try
 		{
-			modus = c.getConstructor(m.getClass()).newInstance(m);
-			msettings = modus.getModusSettings();
+			String folder = modus_classname.substring(0, modus_classname.lastIndexOf("/"));
+			String name = modus_classname.substring(modus_classname.indexOf("/") + 1);
+			System.out.println("Folder: " + folder + " Name: " + name);
+			File classes = new File("modi/" + folder);
+			URL url = classes.toURI().toURL();
+			URL[] urls = new URL[] {url};
+			cl = new URLClassLoader(urls);
+			Class<? extends FetchModus> custom_modus = cl.loadClass(name).asSubclass(FetchModus.class);
+
+			//Load inner classes too
+			for (String filename : classes.list())
+			{
+				if (filename.startsWith(name) && filename.contains("$"))
+				{
+					cl.loadClass(filename.replace(".class", ""));
+				}
+			}
+			
+			modus = custom_modus.getConstructor(Main.class).newInstance(deck);
+			modus.initialSettings();
 		}
-		catch (IllegalArgumentException e){e.printStackTrace();}
-		catch (SecurityException e){e.printStackTrace();}
-		catch (InvocationTargetException e){e.printStackTrace();}
-		catch (NoSuchMethodException e){e.printStackTrace();}
-		catch (InstantiationException e){e.printStackTrace();}
-		catch (IllegalAccessException e){e.printStackTrace();}
+		catch (Exception e){ e.printStackTrace(); }
+		try	{ cl.close(); } catch (Exception x) { x.printStackTrace(); }
+	}
+	
+	private void changeModus(String modus_classname)
+	{
+		core_preferences.set(PREF_FETCHMODUS, modus_classname);
+		savePreferences();
+		cleanUp(deck.getModusItems());
+		modus_preferences = new ArrayList<String>();
+		modus_items = new ArrayList<String>();
+
+		loadModus(modus_classname);
 		
 		preferences_frame.setVisible(false);
 		sylladex_panel = new JPanel();
+		mouse_panel = new JPanel();
 		modus_panel = new JPanel();
 		about_panel = new JPanel();
 		
-		loadPreferences();
 		loadItems();
 		
 		createPreferencesFrame();
 		
-		m.changeModus(modus);
+		deck.changeModus(modus);
 	}
 	
 	//Loading
 	private void loadPreferences()
 	{
-		File prefs_file = new File(core_prefs_file);
-		
 		try
 		{
-			Scanner prefscanner = new Scanner(new FileReader(prefs_file));
+			Scanner prefscanner = new Scanner(new FileReader(core_prefs_file));
 			while(prefscanner.hasNextLine())
-			{ processPrefLine(prefscanner.nextLine()); }
+			{ core_preferences.add(processPrefLine(prefscanner.nextLine())); }
 			prefscanner.close();
 		}
 		catch (FileNotFoundException e)
 		{
-			if (new File("modi/prefs/").exists())
+			if (new File("preferences/").exists())
 			{
 				createPreferences();
 				loadPreferences();
 			}
 			else
 			{
-				JOptionPane.showMessageDialog(null, "Could not write preferences! Check cd/modi/prefs/preferences.txt");
+				JOptionPane.showMessageDialog(null, "Could not write preferences! Check cd/" + core_prefs_file);
 			}
 		}
-		
-		interpretPreferences(core_preferences);
 	}
 
 	private void loadItems()
 	{
 		modus_preferences = new ArrayList<String>();
 		
-		File modus_item_file = new File(msettings.get_item_file());
-		File modus_file = new File(msettings.get_preferences_file());
+		File modus_file = new File(modus.getSettings().get_preferences_file());
 		
 		Scanner itemscanner = null;
 		Scanner prefscanner = null;
 		
-		if(modus_item_file.exists() && modus_file.exists())
+		if (!item_file.exists())
 		{
-			try
-			{
-				itemscanner = new Scanner(new FileReader(modus_item_file));
-				prefscanner = new Scanner(new FileReader(modus_file));
-				while(itemscanner.hasNextLine())
-				{ processItemsLine(itemscanner.nextLine()); }
-				while(prefscanner.hasNextLine())
-				{ processModusLine(prefscanner.nextLine()); }
-			}
-			catch (FileNotFoundException e)
-			{
-				JOptionPane.showMessageDialog(null, "Unable to load modus preferences!");
-			}
-			finally
-			{ itemscanner.close(); prefscanner.close(); }
+			try { Files.createFile(item_file.toPath()); } catch (Exception x) { x.printStackTrace(); }
 		}
-	}
-	
-	private void interpretPreferences(HashMap<String,String> preferences)
-	{
-		top = Boolean.parseBoolean(preferences.get("top"));
-		autohide_dock = Boolean.parseBoolean(preferences.get("autohide_dock"));
-		always_on_top_dock = Boolean.parseBoolean(preferences.get("always_on_top_dock"));
-		usb_mode = Boolean.parseBoolean(preferences.get("usb_mode"));
-		offset = Integer.parseInt(preferences.get("offset"));
-		name_items = Boolean.parseBoolean(preferences.get("name_items"));
-		auto_captcha = Boolean.parseBoolean(preferences.get("auto_captcha"));
-		
-		autohide_cards = Boolean.parseBoolean(preferences.get("autohide_cards"));
-		always_on_top_cards = Boolean.parseBoolean(preferences.get("always_on_top_cards"));
-		
-		fetchmodus = preferences.get("fetchmodus");
-	}
-	
-	private void setPreferencesHashMap()
-	{
-		String tops = new Boolean(top).toString();
-		String autohide_docks = new Boolean(autohide_dock).toString();
-		String always_on_top_docks = new Boolean(always_on_top_dock).toString();
-		String usb_modes = new Boolean(usb_mode).toString();
-		String offsets = new Integer(offset).toString();
-		String name_itemss = new Boolean(name_items).toString();
-		String auto_captchas = new Boolean(auto_captcha).toString();
-		String autohide_cardss = new Boolean(autohide_cards).toString();
-		String always_on_top_cardss = new Boolean(always_on_top_cards).toString();
-		//No need for fetchmodus.toString!
-		
-		core_preferences.put("top", tops);
-		core_preferences.put("autohide_dock", autohide_docks);
-		core_preferences.put("always_on_top_dock", always_on_top_docks);
-		core_preferences.put("usb_mode", usb_modes);
-		core_preferences.put("offset", offsets);
-		core_preferences.put("name_items", name_itemss);
-		core_preferences.put("auto_captcha", auto_captchas);
-		core_preferences.put("autohide_cards", autohide_cardss);
-		core_preferences.put("always_on_top_cards", always_on_top_cardss);
-		core_preferences.put("fetchmodus", fetchmodus);
+		if (!modus_file.exists())
+		{
+			try { Files.createFile(modus_file.toPath()); } catch (Exception x) { x.printStackTrace(); }
+		}
+		try
+		{
+			itemscanner = new Scanner(new FileReader(item_file));
+			prefscanner = new Scanner(new FileReader(modus_file));
+			while(itemscanner.hasNextLine())
+			{ processItemsLine(itemscanner.nextLine()); }
+			while(prefscanner.hasNextLine())
+			{ processModusLine(prefscanner.nextLine()); }
+		}
+		catch (FileNotFoundException e)
+		{
+			Util.error("Unable to load modus preferences!");
+		}
+		finally
+		{ itemscanner.close(); prefscanner.close(); }
 	}
 	
 	private void savePreferences()
@@ -221,33 +245,27 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		{
 			writer = new FileWriter(core_prefs_file);
 			BufferedWriter bwriter = new BufferedWriter(writer);
-			bwriter.write("top:" + core_preferences.get("top")); bwriter.newLine();
-			bwriter.write("autohide_dock:" + core_preferences.get("autohide_dock")); bwriter.newLine();
-			bwriter.write("always_on_top_dock:" + core_preferences.get("always_on_top_dock")); bwriter.newLine();
-			bwriter.write("usb_mode:" + core_preferences.get("usb_mode")); bwriter.newLine();
-			bwriter.write("offset:" + core_preferences.get("offset")); bwriter.newLine();
-			bwriter.write("name_items:" + core_preferences.get("name_items")); bwriter.newLine();
-			bwriter.write("auto_captcha:" + core_preferences.get("auto_captcha")); bwriter.newLine();
-			bwriter.write("autohide_cards:" + core_preferences.get("autohide_cards")); bwriter.newLine();
-			bwriter.write("always_on_top_cards:" + core_preferences.get("always_on_top_cards")); bwriter.newLine();
-			bwriter.write("fetchmodus:" + core_preferences.get("fetchmodus"));
-			bwriter.close();
-			
-			writer = new FileWriter(msettings.get_preferences_file());
-			bwriter = new BufferedWriter(writer);
-			for(String string : modus_preferences)
+			for (Object o : core_preferences)
 			{
-				bwriter.write(string); bwriter.newLine();
+				if (o instanceof String)
+				{
+					bwriter.write("STRING " + ":");
+				}
+				else if (o instanceof Boolean)
+				{
+					bwriter.write("BOOL " + ":");
+				}
+				else if (o instanceof Integer)
+				{
+					bwriter.write("INT " + ":");
+				}
+				bwriter.write(o.toString()); bwriter.newLine();
 			}
 			bwriter.close();
 			
-			writer = new FileWriter(msettings.get_item_file());
-			bwriter = new BufferedWriter(writer);
-			for(String string : modus_items)
-			{
-				bwriter.write(string); bwriter.newLine();
-			}
-			bwriter.close();
+			RW.writeFile(modus_preferences, new File(modus.getSettings().get_preferences_file()));
+			
+			RW.writeFile(modus_items, item_file);
 		}
 		catch (IOException e)
 		{
@@ -261,35 +279,47 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		{
 			FileWriter writer = new FileWriter(core_prefs_file);
 			BufferedWriter bwriter = new BufferedWriter(writer);
-			bwriter.write("top:false"); bwriter.newLine();
-			bwriter.write("autohide_dock:false"); bwriter.newLine();
-			bwriter.write("always_on_top_dock:true"); bwriter.newLine();
-			bwriter.write("usb_mode:false"); bwriter.newLine();
-			bwriter.write("offset:0"); bwriter.newLine();
-			bwriter.write("name_items:true"); bwriter.newLine();
-			bwriter.write("auto_captcha:false"); bwriter.newLine();
-			bwriter.write("autohide_cards:false"); bwriter.newLine();
-			bwriter.write("always_on_top_cards:true"); bwriter.newLine();
-			bwriter.write("fetchmodus:StackModus");
+			bwriter.write("BOOL top:false"); bwriter.newLine();
+			bwriter.write("BOOL autohide_dock:false"); bwriter.newLine();
+			bwriter.write("BOOL always_on_top_dock:true"); bwriter.newLine();
+			bwriter.write("INT captchalogue_mode:0"); bwriter.newLine();
+			bwriter.write("INT offset:0"); bwriter.newLine();
+			bwriter.write("BOOL name_items:true"); bwriter.newLine();
+			bwriter.write("BOOL auto_captcha:false"); bwriter.newLine();
+			bwriter.write("BOOL autohide_cards:false"); bwriter.newLine();
+			bwriter.write("BOOL always_on_top_cards:true"); bwriter.newLine();
+			bwriter.write("INT number_of_cards:4"); bwriter.newLine();
+			bwriter.write("STRING fetchmodus:canon/StackModus"); bwriter.newLine();
+			
+			bwriter.write("INT leftclick:0"); bwriter.newLine();
+			bwriter.write("INT leftmodclick:2"); bwriter.newLine();
+			bwriter.write("INT rightclick:4"); bwriter.newLine();
+			bwriter.write("INT rightmodclick:3");
 			bwriter.close();
 		}
 		catch (IOException e)
 		{
-			JOptionPane.showMessageDialog(null, "Unable to read/write preferences file! Check cd/modi/prefs/preferences.txt");
+			JOptionPane.showMessageDialog(null, "Unable to read/write preferences file! Check cd/" + core_prefs_file);
 			System.exit(1);
 		}
 	}
 	
-	private void processPrefLine(String line)
+	private Object processPrefLine(String line)
 	{
-		Scanner scanner = new Scanner(line);
-		scanner.useDelimiter(":");
-		if(scanner.hasNext())
+		String type = line.substring(0, line.indexOf(" "));
+		if (type.contains("STRING"))
 		{
-			String name = scanner.next();
-			String value = scanner.next();
-			core_preferences.put(name, value);
+			return line.substring(line.indexOf(":") + 1);
 		}
+		else if (type.contains("BOOL"))
+		{
+			return Boolean.parseBoolean(line.substring(line.indexOf(":") + 1));
+		}
+		else if (type.contains("INT"))
+		{
+			return Integer.parseInt(line.substring(line.indexOf(":") + 1));
+		}
+		return 1;
 	}
 	
 	private void processModusLine(String line)
@@ -309,7 +339,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		{
 			public boolean accept(File dir, String name)
 			{
-				if(name.endsWith(".class") && !name.contains("$"))
+				if(name.endsWith(".fmi"))
 				{
 					return true;
 				}
@@ -320,10 +350,15 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	}
 
 	//Exiting
-	protected void cleanUp()
+	protected void cleanUp(ArrayList<SylladexItem> item_list)
 	{
 		modus_preferences = modus.getPreferences();
-		modus_items = modus.getItems();
+		modus_items = new ArrayList<String>();
+		for (SylladexItem item : item_list)
+		{
+			modus_items.add(item.getSaveString());
+		}
+		core_preferences.set(PREF_NUMBER_OF_CARDS, deck.getCards().size());
 		savePreferences();
 	}
 	
@@ -333,7 +368,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public boolean top()
 	{
-		return top;
+		return (boolean) core_preferences.get(PREF_TOP);
 	}
 	
 	/**
@@ -341,7 +376,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public boolean autohide_dock()
 	{
-		return autohide_dock;
+		return (boolean) core_preferences.get(PREF_AUTOHIDE_DOCK);
 	}
 	
 	/**
@@ -349,15 +384,15 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public boolean always_on_top_dock()
 	{
-		return always_on_top_dock;
+		return (boolean) core_preferences.get(PREF_ALWAYS_ON_TOP_DOCK);
 	}
 	
 	/**
 	 * @return True if the program is in "USB Mode".
 	 */
-	public boolean usb_mode()
+	public int captchalogue_mode()
 	{
-		return usb_mode;
+		return (int) core_preferences.get(PREF_CAPTCHALOGUE_MODE);
 	}
 	
 	/**
@@ -365,7 +400,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public int offset()
 	{
-		return offset;
+		return (int) core_preferences.get(PREF_OFFSET);
 	}
 	
 	/**
@@ -373,7 +408,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public boolean name_items()
 	{
-		return name_items;
+		return (boolean) core_preferences.get(PREF_NAME_ITEMS);
 	}
 	
 	/**
@@ -381,7 +416,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public boolean autohide_cards()
 	{
-		return autohide_cards;
+		return (boolean) core_preferences.get(PREF_AUTOHIDE_CARDS);
 	}
 	
 	/**
@@ -389,12 +424,17 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	 */
 	public boolean always_on_top_cards()
 	{
-		return always_on_top_cards;
+		return (boolean) core_preferences.get(PREF_ALWAYS_ON_TOP_CARDS);
+	}
+	
+	public int number_of_cards()
+	{
+		return (int) core_preferences.get(PREF_NUMBER_OF_CARDS);
 	}
 	
 	public boolean auto_captcha()
 	{
-		return auto_captcha;
+		return (boolean) core_preferences.get(PREF_AUTO_CAPTCHA);
 	}
 	
 	/**
@@ -421,22 +461,44 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		return modus;
 	}
 	
+	public int leftClickAction()
+	{
+		return (int) core_preferences.get(PREF_LEFT_CLICK);
+	}
+	
+	public int leftModClickAction()
+	{
+		return (int) core_preferences.get(PREF_LEFT_MOD_CLICK);
+	}
+	
+	public int rightClickAction()
+	{
+		return (int) core_preferences.get(PREF_RIGHT_CLICK);
+	}
+	
+	public int rightModClickAction()
+	{
+		return (int) core_preferences.get(PREF_RIGHT_MOD_CLICK);
+	}
+	
 	//Swing
 	private void createPreferencesFrame()
 	{
 		preferences_frame = new JFrame();
 		preferences_frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		preferences_frame.addWindowListener(this);
-		preferences_frame.setIconImage(Main.createImageIcon(msettings.get_card_image()).getImage());
+		preferences_frame.setIconImage(Util.createImageIcon(modus.getSettings().get_card_image()).getImage());
 		JTabbedPane tabbedpane = new JTabbedPane();
 		
-		preferences_frame.setBackground(msettings.get_background_color());
+		preferences_frame.setBackground(modus.getSettings().get_background_color());
 		
 		populateSylladexPanel();
+		populateMousePanel();
 		populateModusPanel();
 		populateAboutPanel();
 				
 		tabbedpane.addTab("Sylladex", sylladex_panel);
+		tabbedpane.addTab("Mouse", mouse_panel);
 		tabbedpane.addTab("Fetch Modus", modus_panel);
 		tabbedpane.addTab("About", about_panel);
 		
@@ -459,48 +521,52 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		sylladex_panel.setLayout(new BoxLayout(sylladex_panel, BoxLayout.PAGE_AXIS));
 		//Components
 		String[] topstrings = { "Bottom", "Top" };
-		topbox = new JComboBox(topstrings);
-			if(top){ topbox.setSelectedIndex(1); } else { topbox.setSelectedIndex(0); }
+		topbox = new JComboBox<String>(topstrings);
+			if((boolean) core_preferences.get(PREF_TOP))
+			{ topbox.setSelectedIndex(1); } else { topbox.setSelectedIndex(0); }
 			topbox.addActionListener(this);
 		
-		dock_offset = new JSlider(JSlider.HORIZONTAL, -90, 200, offset);
+		dock_offset = new JSlider(JSlider.HORIZONTAL, -90, 200, 
+				(int) core_preferences.get(PREF_OFFSET));
 			dock_offset.addChangeListener(this);
 		
 		ahdock = new JCheckBox("Auto-hide");
-			ahdock.setSelected(autohide_dock);
+			ahdock.setSelected((boolean) core_preferences.get(PREF_AUTOHIDE_DOCK));
 			ahdock.addActionListener(this);
 		aotdock = new JCheckBox("Always on top");
-			aotdock.setSelected(always_on_top_dock);
+			aotdock.setSelected((boolean) core_preferences.get(PREF_ALWAYS_ON_TOP_DOCK));
 			aotdock.addActionListener(this);
 			
-		usbmode = new JCheckBox("USB mode (files are copied to sylladex)");
-			usbmode.setSelected(usb_mode);
-			usbmode.addActionListener(this);
-			usbmode.setEnabled(false);
+		captchalogue_mode = new JComboBox<String>();
+			captchalogue_mode.addItem("Link");
+			captchalogue_mode.addItem("Copy");
+			captchalogue_mode.addItem("Move");
+			captchalogue_mode.setSelectedIndex((int) core_preferences.get(PREF_CAPTCHALOGUE_MODE));
+			captchalogue_mode.addActionListener(this);
 			
 		autocaptcha = new JCheckBox("Auto-captchalogue clipboard");
-			autocaptcha.setSelected(auto_captcha);
+			autocaptcha.setSelected((boolean) core_preferences.get(PREF_AUTO_CAPTCHA));
 			autocaptcha.addActionListener(this);
 			
 		nameitems = new JCheckBox("Always prompt for image names");
-			nameitems.setSelected(name_items);
+			nameitems.setSelected((boolean) core_preferences.get(PREF_NAME_ITEMS));
 			nameitems.addActionListener(this);
 			
 		ahcards = new JCheckBox("Auto-hide");
-			ahcards.setSelected(autohide_cards);
+			ahcards.setSelected((boolean) core_preferences.get(PREF_AUTOHIDE_CARDS));
 			ahcards.addActionListener(this);
 		aotcards = new JCheckBox("Always on top");
-			aotcards.setSelected(always_on_top_cards);
+			aotcards.setSelected((boolean) core_preferences.get(PREF_ALWAYS_ON_TOP_CARDS));
 			aotcards.addActionListener(this);
 		
 		JPanel buttonpanel = new JPanel();
-			modusbutton = new JButton("Select Fetch Modus");
+			modusbutton = new SButton("Select Fetch Modus");
 				modusbutton.addActionListener(this);
 				buttonpanel.add(modusbutton);
-			JButton addbutton = new JButton("Add card");
-				addbutton.addActionListener(this);
-				addbutton.setActionCommand("add card");
-				buttonpanel.add(addbutton);
+			JButton removebutton = new JButton("Remove card");
+				removebutton.addActionListener(this);
+				removebutton.setActionCommand("remove card");
+				buttonpanel.add(removebutton);
 			
 		JPanel dockpanel = new JPanel(); dockpanel.setLayout(new BoxLayout(dockpanel, BoxLayout.PAGE_AXIS));
 		JPanel cardpanel = new JPanel(); cardpanel.setLayout(new BoxLayout(cardpanel, BoxLayout.PAGE_AXIS));
@@ -526,12 +592,61 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		
 		miscpanel.add(nameitems);
 		miscpanel.add(autocaptcha);
-		miscpanel.add(usbmode);
+		miscpanel.add(captchalogue_mode); miscpanel.add(new JLabel("files to sylladex"));
 		
 		sylladex_panel.add(dockpanel);
 		sylladex_panel.add(cardpanel);
 		sylladex_panel.add(miscpanel);
 		sylladex_panel.add(buttonpanel);
+	}
+	
+	private void populateMousePanel()
+	{
+		mouse_panel.setLayout(new BoxLayout(mouse_panel, BoxLayout.PAGE_AXIS));
+		
+		mouse_panel.add(new JLabel("Left click: "));
+		leftclick = new JComboBox<String>();
+			leftclick.addItem("Open");
+			leftclick.addItem("Open and keep");
+			leftclick.addItem("Open and eject");
+			leftclick.addItem("Flip");
+			leftclick.addItem("Open popup menu");
+			leftclick.setSelectedIndex((int) core_preferences.get(PREF_LEFT_CLICK));
+			leftclick.addActionListener(this);
+			mouse_panel.add(leftclick);
+		
+		mouse_panel.add(new JLabel("Shift left click: "));
+		leftmodclick = new JComboBox<String>();
+			leftmodclick.addItem("Open");
+			leftmodclick.addItem("Open and keep");
+			leftmodclick.addItem("Open and eject");
+			leftmodclick.addItem("Flip");
+			leftmodclick.addItem("Open popup menu");
+			leftmodclick.setSelectedIndex((int) core_preferences.get(PREF_LEFT_MOD_CLICK));
+			leftmodclick.addActionListener(this);
+			mouse_panel.add(leftmodclick);
+			
+		mouse_panel.add(new JLabel("Right click: "));
+		rightclick = new JComboBox<String>();
+			rightclick.addItem("Open");
+			rightclick.addItem("Open and keep");
+			rightclick.addItem("Open and eject");
+			rightclick.addItem("Flip");
+			rightclick.addItem("Open popup menu");
+			rightclick.setSelectedIndex((int) core_preferences.get(PREF_RIGHT_CLICK));
+			rightclick.addActionListener(this);
+			mouse_panel.add(rightclick);
+			
+		mouse_panel.add(new JLabel("Shift right click: "));
+		rightmodclick = new JComboBox<String>();
+			rightmodclick.addItem("Open");
+			rightmodclick.addItem("Open and keep");
+			rightmodclick.addItem("Open and eject");
+			rightmodclick.addItem("Flip");
+			rightmodclick.addItem("Open popup menu");
+			rightmodclick.setSelectedIndex((int) core_preferences.get(PREF_RIGHT_MOD_CLICK));
+			rightmodclick.addActionListener(this);
+			mouse_panel.add(rightmodclick);
 	}
 	
 	private void populateModusPanel()
@@ -605,47 +720,17 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	private void populateModi(JLayeredPane pane)
 	{
 		String[] modistrings = getModiAsStringArray();
-		ArrayList<FetchModus> modi = new ArrayList<FetchModus>();
-		try
-		{
-			File classes = new File("modi/");
-			URL url = classes.toURI().toURL();
-			URL[] urls = new URL[] {url};
-			ClassLoader cl = new URLClassLoader(urls);
-			for(String modusstring : modistrings)
-			{
-				modusstring = modusstring.replaceAll("\\.class", "");
-				Class<?> modus = cl.loadClass(modusstring);
-				modi.add((FetchModus)modus.getConstructor(m.getClass()).newInstance((Object)null));
-			}
-		}
-		catch (ClassNotFoundException e)
-		{
-			JOptionPane.showMessageDialog(null, "Class not found!\n" + e.getLocalizedMessage());
-		}
-		catch (InstantiationException e)
-		{
-			JOptionPane.showMessageDialog(null, "Unable to instantiate class!\n" + e.getLocalizedMessage());
-		}
-		catch (NoSuchMethodException e)
-		{
-			JOptionPane.showMessageDialog(null, "Could not find constructor!\n" + e.getLocalizedMessage());
-		}
-		catch (Exception e)
-		{
-			JOptionPane.showMessageDialog(null, "Error!\n" + e.getLocalizedMessage());
-		}
 		
 		int offset = 0;
 		int xpos = 0;
 		int ypos = 0;
-		for(FetchModus modus : modi)
+		for(String s : modistrings)
 		{
-			ModusThumbnail thumbnail = new ModusThumbnail(modus);
+			ModusThumbnail thumbnail = new ModusThumbnail(s);
 			JLabel label = thumbnail.getLabel();
 			
-			xpos = ( (295-100-50)/modi.size() )*offset;
-			ypos = ( (376-127)/modi.size() )*offset;
+			xpos = ( (295-100-50)/modistrings.length )*offset;
+			ypos = ( (376-127)/modistrings.length )*offset;
 			
 			label.setBounds(xpos, ypos, 295-xpos, 127);
 			pane.setLayer(label, offset);
@@ -660,7 +745,9 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		Object source = e.getSource();
 		if(source == topbox)
 		{
-			if(topbox.getSelectedIndex()==1){ top=true; } else { top=false; }
+			if(topbox.getSelectedIndex()==1)
+			{ core_preferences.set(PREF_TOP, true); }
+			else { core_preferences.set(PREF_TOP, false); }
 		}
 		else if(source == modusbutton)
 		{
@@ -668,40 +755,56 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		}
 		else if(source == ahdock)
 		{
-			autohide_dock = ahdock.isSelected();
+			core_preferences.set(PREF_AUTOHIDE_DOCK, ahdock.isSelected());
 		}
 		else if(source == aotdock)
 		{
-			always_on_top_dock = aotdock.isSelected();
+			core_preferences.set(PREF_ALWAYS_ON_TOP_DOCK, aotdock.isSelected());
 		}
 		else if(source == ahcards)
 		{
-			autohide_cards = ahcards.isSelected();
+			core_preferences.set(PREF_AUTOHIDE_CARDS, ahcards.isSelected());
 		}
 		else if(source == aotcards)
 		{
-			always_on_top_cards = aotcards.isSelected();
+			core_preferences.set(PREF_ALWAYS_ON_TOP_CARDS, aotcards.isSelected());
 		}
 		else if(source == nameitems)
 		{
-			name_items = nameitems.isSelected();
+			core_preferences.set(PREF_NAME_ITEMS, nameitems.isSelected());
 		}
-		else if(source == usbmode)
+		else if(source == captchalogue_mode)
 		{
-			usb_mode = usbmode.isSelected();
+			core_preferences.set(PREF_CAPTCHALOGUE_MODE, captchalogue_mode.getSelectedIndex());
 		}
 		else if(source == autocaptcha)
 		{
-			auto_captcha = autocaptcha.isSelected();
+			core_preferences.set(PREF_AUTO_CAPTCHA, autocaptcha.isSelected());
 		}
-		else if(e.getActionCommand().equals("add card"))
+		else if(e.getActionCommand().equals("remove card"))
 		{
-			m.getModus().addCard();
+			deck.removeCard();
 		}
-		m.refreshDock();
-		m.refreshCardHolder();
-		if(autohide_dock){ m.hideDock(); }
-		if(autohide_cards) { m.getCardHolder().setVisible(false); }
+		else if (e.getSource().equals(leftclick))
+		{
+			core_preferences.set(PREF_LEFT_CLICK, leftclick.getSelectedIndex());
+		}
+		else if (e.getSource().equals(leftmodclick))
+		{
+			core_preferences.set(PREF_LEFT_MOD_CLICK, leftmodclick.getSelectedIndex());
+		}
+		else if (e.getSource().equals(rightclick))
+		{
+			core_preferences.set(PREF_RIGHT_CLICK, rightclick.getSelectedIndex());
+		}
+		else if (e.getSource().equals(rightmodclick))
+		{
+			core_preferences.set(PREF_RIGHT_MOD_CLICK, rightmodclick.getSelectedIndex());
+		}
+		deck.refreshDock();
+		deck.refreshCardHolder();
+		if((boolean) core_preferences.get(PREF_AUTOHIDE_DOCK)){ deck.hideDock(); }
+		if((boolean) core_preferences.get(PREF_AUTOHIDE_CARDS)) { deck.getCardHolder().setVisible(false); }
 	}
 	
 	@Override
@@ -709,33 +812,33 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	{
 		if (e.getSource() == dock_offset)
 		{
-			offset = dock_offset.getValue();
+			core_preferences.set(PREF_OFFSET, dock_offset.getValue());
 		}
-		m.showDock();
+		deck.showDock();
 	}
+	
 	private class ModusThumbnail implements MouseListener
 	{
 		JLabel label;
 		Icon smallimage;
 		ImageIcon largeimage;
-		FetchModus mymodus;
-		FetchModusSettings mymsettings;
+
+		ArrayList<String> info;
 		
-		public ModusThumbnail(FetchModus mod)
+		public ModusThumbnail(String s)
 		{
-			mymodus = mod;
-			mymsettings = mymodus.getModusSettings();
+			info = RW.readFile(new File("modi/" + s));
 			
-			largeimage = Main.createImageIcon(mymsettings.get_modus_image());
-			smallimage = Main.getSizedIcon(largeimage.getImage(), 100, 127);
+			largeimage = Util.createImageIcon("modi/" + info.get(2));
+			smallimage = Util.getSizedIcon(largeimage.getImage(), 100, 127);
 			label = new JLabel(smallimage);
 			label.setHorizontalAlignment(JLabel.LEFT);
 			label.addMouseListener(this);
 			
-			if(modus.getClass().getSimpleName().equals(mymodus.getClass().getSimpleName()))
+			if(modus.getSettings().get_name().equals(info.get(0)))
 			{
 				preview.setIcon(largeimage);
-				author.setText(mymsettings.get_author());
+				author.setText(info.get(1));
 			}
 		}
 
@@ -747,7 +850,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 		@Override
 		public void mouseClicked(MouseEvent e)
 		{
-			changeModus(mymodus.getClass());
+			changeModus(info.get(3));
 		}
 
 		@Override
@@ -758,7 +861,7 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 			
 			preview.setIcon(largeimage);
 			preview.repaint();
-			author.setText(mymsettings.get_author());
+			author.setText(info.get(1));
 		}
 
 		@Override
@@ -784,7 +887,6 @@ public class DeckPreferences implements ActionListener, WindowListener, ChangeLi
 	@Override
 	public void windowClosing(WindowEvent w)
 	{
-		setPreferencesHashMap();
 		savePreferences();
 	}
 	@Override

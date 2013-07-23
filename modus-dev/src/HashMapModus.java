@@ -1,29 +1,51 @@
-import sylladex.*;
-import sylladex.Animation.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
-import java.util.ArrayList;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Scanner;
-import javax.swing.*;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JWindow;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import sylladex.CaptchalogueCard;
+import sylladex.FetchModus;
+import sylladex.Main;
+import sylladex.SylladexItem;
+import util.Animation;
+import util.Animation.AnimationType;
+import util.Util;
+import util.Util.OpenReason;
 
 public class HashMapModus extends FetchModus implements ActionListener, ListSelectionListener
 {
 	private HashMap<String,Integer> map;
 	
-	private FetchModusSettings s;
-	
-	private boolean accessible = true;
-	
 	private SylladexItem item;
 	
 	private JWindow window;
-	private JLayeredPane box;
-	private SylladexCard card;
+	private JPanel box;
+	private CaptchalogueCard card;
 	
 	private JLabel collisionicon;
 	
@@ -35,115 +57,74 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	private int answer;
 	
 	private JTextField text;
-	private DefaultListModel model;
+	private DefaultListModel<String> model;
+	
+	private static final int LOADING = -1, DEFAULT = 0, CAPTCHALOGUING = 1, OPENING = 2;
+	private int mode = LOADING;
+	
+	private static final int PREF_SELECTED_MAPPING = 0, PREF_DETECT_COLLISIONS = 1;
 	
 	public HashMapModus(Main m)
 	{
-		this.m = m;
-		createModusSettings();
-		icons = new ArrayList<JLabel>();
+		super(m);
 	}
 	
-	private void createModusSettings()
+	@Override
+	public void initialSettings()
 	{
-		s = new FetchModusSettings();
+		settings.set_dock_text_image("modi/canon/hashmap/docktext.png");
+		settings.set_card_image("modi/canon/hashmap/card.png");
+		settings.set_card_back_image("modi/canon/hashmap/back.png");
 		
-		s.set_bottom_dock_image("modi/hashmap/dockbg.png");
-		s.set_top_dock_image("modi/hashmap/dockbg_top.png");
-		s.set_dock_text_image("modi/hashmap/docktext.png");
-		s.set_card_image("modi/hashmap/card.png");
-		s.set_card_back_image("modi/hashmap/back.png");
+		settings.set_modus_image("modi/canon/hashmap/modus.png");
+		settings.set_name("Hashmap");
+		settings.set_author("gumptiousCreator");
 		
-		s.set_modus_image("modi/hashmap/modus.png");
-		s.set_name("Hashmap");
-		s.set_author("gumptiousCreator");
+		settings.set_preferences_file("modi/prefs/hashmapprefs.txt");
 		
-		s.set_item_file("modi/items/hashmap.txt");
-		s.set_preferences_file("modi/prefs/hashmapprefs.txt");
+		settings.set_background_color(255, 240, 0);
+		settings.set_secondary_color(227, 203, 0);
+		settings.set_text_color(149, 83, 255);
 		
-		s.set_background_color(255, 255, 0);
+		settings.set_initial_card_number(10);
+		settings.set_origin(-123, 120);
 		
-		s.set_initial_card_number(10);
-		s.set_origin(-123, 120);
-		
-		s.set_cards_draggable(false);
-		s.set_draw_empty_cards(true);
-		s.set_shade_inaccessible_cards(false);
+		settings.set_cards_draggable(false);
+		settings.set_draw_empty_cards(true);
+		settings.set_shade_inaccessible_cards(false);
 	}
 	
-	public FetchModusSettings getModusSettings()
-	{
-		return s;
-	}
-	
+	@Override
 	public void prepare()
 	{
 		// Exclamation mark icon
-		collisionicon = new JLabel(Main.createImageIcon("modi/hashmap/collision.gif"));
-		collisionicon.setBounds(0,0,s.get_card_width(),s.get_card_height());
-		
-		// Fill icons with blank labels
-		if(icons.size()<m.getCards().size())
-		{
-			for(int i=0; i<m.getCards().size(); i++)
-			{
-				icons.add(new JLabel(""));
-			}
-		}
+		collisionicon = new JLabel(Util.createImageIcon("modi/canon/hashmap/collision.gif"));
+		collisionicon.setBounds(0,0,settings.get_card_width(),settings.get_card_height());
 		
 		// Set up the screen
 		arrangeCards();
-		JLabel numbers = new JLabel(Main.createImageIcon("modi/hashmap/numbers.png"));
-		numbers.setBounds((m.getScreenSize().width-466)/2,m.getDockIconYPosition()-8,453,6);
-		foreground.add(numbers);
-		foreground.repaint();
+		refreshDock();
 		
-		// Load items and create prefs panel
-		addLoadedItems();
+		// Preferences
+		if (preferences.size() == 0)
+		{
+			preferences.add("C=2; V=1;.txt");
+			preferences.add("false");
+		}
 		populatePreferencesPanel();
 	}
 	
-	private void addLoadedItems()
+	@Override
+	public void ready()
 	{
-		int i = 0;
-		for(String string : items)
-		{
-			if(!string.equals(""))
-			{
-				SylladexCard card = m.getCards().get(i);
-				SylladexItem item = new SylladexItem(string, m);
-				card.setItem(item);
-				card.setAccessible(true);
-				JLabel icon = m.getIconLabelFromItem(item);
-				icons.set(i, icon);
-				card.setIcon(icon);
-				m.setIcons(icons);
-			}
-			i++;
-		}
-	}
-
-	public ArrayList<String> getItems()
-	{
-		ArrayList<String> items = new ArrayList<String>();
-		for(SylladexCard card : m.getCards())
-		{
-			if(card.getItem()!=null)
-				items.add(m.getCards().indexOf(card), card.getItem().getSaveString());
-			else
-				items.add("");
-		}
-		return items;
+		arrangeCards();
+		mode = DEFAULT;
 	}
 	
-	enum PrefLabels
+	@Override
+	public Object[] getCardOrder()
 	{
-		SELECTED_MAPPING (0),
-		DETECT_COLLISIONS (1);
-		
-		public int index;
-		PrefLabels(int i)
-		{ index = i; }
+		return deck.getCards().toArray();
 	}
 
 	private void populatePreferencesPanel()
@@ -153,7 +134,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		preferences_panel.setPreferredSize(new Dimension(270,300));
 		
 		JButton ejectbutton = new JButton("EJECT");
-			ejectbutton.setActionCommand("eject");
+			ejectbutton.setActionCommand("hashmap_eject");
 			ejectbutton.addActionListener(this);
 			ejectbutton.setBounds(77,7,162,68);
 			preferences_panel.add(ejectbutton);
@@ -163,11 +144,11 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			mappingslabel.setBounds(20,108,234,16);
 			preferences_panel.add(mappingslabel);
 			
-		model = new DefaultListModel();
+		model = new DefaultListModel<String>();
 			loadMappings(model);
-			JList mappinglist = new JList(model);
+			JList<String> mappinglist = new JList<String>(model);
 			mappinglist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			mappinglist.setSelectedValue(preferences.get(PrefLabels.SELECTED_MAPPING.index).replaceAll("\\.txt", ""), true);
+			mappinglist.setSelectedValue(preferences.get(PREF_SELECTED_MAPPING).replaceAll("\\.txt", ""), true);
 			mappinglist.addListSelectionListener(this);
 			mappinglist.setVisibleRowCount(-1);
 			JScrollPane scrollpane = new JScrollPane(mappinglist);
@@ -180,13 +161,13 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			
 		JButton addbutton = new JButton("<html><font size=\"8px\">ADD</font>");
 			addbutton.setBounds(201,185,57,25);
-			addbutton.setActionCommand("add mapping");
+			addbutton.setActionCommand("hashmap_add_mapping");
 			addbutton.addActionListener(this);
 			preferences_panel.add(addbutton);
 			
 		JCheckBox detectcollisions = new JCheckBox("detect collisions");
-			detectcollisions.setSelected(preferences.get(PrefLabels.DETECT_COLLISIONS.index).equals("true"));
-			detectcollisions.setActionCommand("detect collisions");
+			detectcollisions.setSelected(preferences.get(PREF_DETECT_COLLISIONS).equals("true"));
+			detectcollisions.setActionCommand("hashmap_detect_collisions");
 			detectcollisions.addActionListener(this);
 			detectcollisions.setBounds(41,242,196,17);
 			preferences_panel.add(detectcollisions);
@@ -194,9 +175,9 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		preferences_panel.validate();
 	}
 	
-	private void loadMappings(DefaultListModel model)
+	private void loadMappings(DefaultListModel<String> model)
 	{
-		File dir = new File("modi/hashmap/");
+		File dir = new File("modi/canon/hashmap/");
 		FilenameFilter filter = new FilenameFilter()
 		{
 			public boolean accept(File dir, String name)
@@ -220,43 +201,47 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		window = new JWindow();
 		window.setLayout(null);
 		window.setBounds(200,-124,255,410);
-		window.setAlwaysOnTop(true);
-		Main.setTransparent(window);
+		window.setBackground(Util.COLOR_TRANSPARENT);
 		
-		box = new JLayeredPane();
+		box = new JPanel();
 		box.setLayout(null);
 		box.setBounds(0,0,239,124);
 		
-		JLabel background = new JLabel(Main.createImageIcon("modi/hashmap/selectionwindow.png"));
+		JLayeredPane pane = new JLayeredPane();
+		pane.setLayout(null);
+		pane.setBounds(0, 0, 239, 124);
+		box.add(pane);
+		
+		JLabel background = new JLabel(Util.createImageIcon("modi/canon/hashmap/selectionwindow.png"));
 		background.setBounds(0,0,239,124);
-		box.setLayer(background, 0);
-		box.add(background);
+		pane.setLayer(background, 0);
+		pane.add(background);
 		
 		stringline = new JLabel(colour(string));
 		stringline.setBounds(14,18,202,14);
 		stringline.setHorizontalAlignment(JLabel.CENTER);
 		stringline.setVerticalAlignment(JLabel.TOP);
-		box.setLayer(stringline, 1);
-		box.add(stringline);
+		pane.setLayer(stringline, 1);
+		pane.add(stringline);
 		
 		JLabel numberline = new JLabel(colour(numbers));
 		numberline.setBounds(14,35,202,14);
 		numberline.setHorizontalAlignment(JLabel.CENTER);
 		numberline.setVerticalAlignment(JLabel.TOP);
-		box.setLayer(numberline, 1);
-		box.add(numberline);
+		pane.setLayer(numberline, 1);
+		pane.add(numberline);
 		
 		JLabel calculationline = new JLabel(calculation + " = " + total);
 		calculationline.setBounds(14,62,202,14);
 		calculationline.setHorizontalAlignment(JLabel.CENTER);
-		box.setLayer(calculationline, 1);
-		box.add(calculationline);
+		pane.setLayer(calculationline, 1);
+		pane.add(calculationline);
 		
-		JLabel finalline = new JLabel("%" + m.getCards().size() + " =");
+		JLabel finalline = new JLabel("%" + deck.getCards().size() + " =");
 		finalline.setBounds(14,85,202,14);
 		finalline.setHorizontalAlignment(JLabel.CENTER);
-		box.setLayer(finalline, 1);
-		box.add(finalline);
+		pane.setLayer(finalline, 1);
+		pane.add(finalline);
 		
 		JLabel answerline = new JLabel(new Integer(answer).toString());
 		answerline.setBackground(new Color(0,0,0));
@@ -264,13 +249,13 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		answerline.setOpaque(true);
 		answerline.setBounds(190,79,30,30);
 		answerline.setHorizontalAlignment(JLabel.CENTER);
-		box.setLayer(answerline, 1);
-		box.add(answerline);
+		pane.setLayer(answerline, 1);
+		pane.add(answerline);
 		
-		JLabel animation = new JLabel(Main.createImageIcon("modi/hashmap/animation.gif"));
+		JLabel animation = new JLabel(Util.createImageIcon("modi/canon/hashmap/animation.gif"));
 		animation.setBounds(0,0,239,124);
-		box.setLayer(animation, 2);
-		box.add(animation);
+		pane.setLayer(animation, 2);
+		pane.add(animation);
 		
 		window.add(box);
 		window.setVisible(true);
@@ -283,12 +268,13 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		Scanner s = new Scanner("");
 		try
 		{
-			s = new Scanner(new FileReader(new File("modi/hashmap/" + preferences.get(PrefLabels.SELECTED_MAPPING.index))));
+			s = new Scanner(new FileReader(new File("modi/canon/hashmap/" + preferences.get(PREF_SELECTED_MAPPING))));
 			while(s.hasNextLine())
 			{
 				Scanner t = new Scanner(s.nextLine());
 				t.useDelimiter(":");
 				map.put(t.next(), Integer.parseInt(t.next()));
+				t.close();
 			}
 		}
 		catch (FileNotFoundException e){ e.printStackTrace(); }
@@ -298,24 +284,24 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	private String colour(String s)
 	{
 		String t = "<html>";
-		for(int i=0; i<s.length(); i++)
+		for (int i=0; i<s.length(); i++)
 		{
-			// Can't create a String from a char, directly, so concatenate with empty string.
+			// Can't create a String from a char directly, so concatenate with empty string.
 			String character = s.charAt(i) + "";
 			String value = "";
-			if(map.get(character)!=null) { value = map.get(character).toString(); }
+			if (map.get(character)!=null) { value = map.get(character).toString(); }
 			// If no mapping for the character, perhaps we're looking at a number
-			else if(map.get("c" + character)!=null) { value = map.get("c" + character).toString(); }
+			else if (map.get("c" + character) != null) { value = map.get("c" + character).toString(); }
 			// Default colour
 			String col = "000000";
-			if(value!=null)
+			if (value!=null)
 			{
-				if(map.get("c" + value)!=null)
+				if (map.get("c" + value) != null)
 				{
-					// In this case, c+value = e.g. c3 so the colour is the mapping for this
+					// In this case, c + value = e.g. c3 so the colour is the mapping for this
 					col = Integer.toHexString(map.get("c" + value));
 				}
-				else if(value.length()>2)
+				else if (value.length() > 2)
 				{
 					// In this case, we already looked up the colour.
 					col = Integer.toHexString(new Integer(value));
@@ -330,30 +316,78 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 	}
 	
 	@Override
-	public void addGenericItem(Object o)
+	public boolean captchalogue(SylladexItem item)
 	{
 		// The "accessible" thing is because this modus only supports adding one file
 		// at a time (to allow time for the animation to complete).
+		if (loading)
+		{
+			string = item.getName().toUpperCase();
+			this.item = item;
+			doWork();
+			if (!card.isEmpty())
+			{
+				if (preferences.get(PREF_DETECT_COLLISIONS).equals("false"))
+				{
+					deck.open(card, OpenReason.MODUS_PUSH);
+				}
+				else
+				{
+					return false;
+				}
+			}
+			deck.getCards().get(answer).setItem(item);
+			return true;
+		}
+		
 		try
 		{
-			if(accessible)
-			{
-				accessible = false;
-				
-				item = new SylladexItem("ITEM", o, m);
+			if (mode == DEFAULT)
+			{			
+				mode = CAPTCHALOGUING;
 				
 				string = item.getName().toUpperCase();
+				this.item = item;
 				
-				doWork();
+				firstAnimation();
 				
-				card = m.getCards().get(answer);
-				Animation a3 = new Animation(card, new Point(card.getWidth(),card.getPosition().y), AnimationType.BOUNCE, this, "add animation");
-				Animation a2 = new Animation(AnimationType.WAIT, 2000, a3, "run");
-				new Animation(box, new Point(0,244), AnimationType.MOVE, a2, "run").run();
+				if (preferences.get(PREF_DETECT_COLLISIONS).equals("true")
+						&& !card.isEmpty())
+				{
+					return false;
+				}
+				
+				return true;
 			}
-		}catch(Exception e){e.printStackTrace();}
+		}
+		catch (Exception e) { e.printStackTrace(); }
+		return false;
 	}
 	
+	private void showSelectionWindow()
+	{
+		if (mode != DEFAULT) { return; }
+		mode = OPENING;
+		
+		string = JOptionPane.showInputDialog("");
+		if (string == null) { mode = DEFAULT; return; }
+		string = string.toUpperCase();
+		
+		firstAnimation();
+	}
+	
+	private void firstAnimation()
+	{
+		doWork();
+		createBox();
+		
+		window.setAlwaysOnTop(true);
+		deck.addAnimation(new Animation(box, new Point(0,244), AnimationType.MOVE, null, null));
+		deck.addAnimation(new Animation(AnimationType.WAIT, 2000, null, null));
+		deck.addAnimation(new Animation(card, new Point(card.getWidth(),card.getLocation().y),
+												AnimationType.BOUNCE, null, "hashmap_first_animation"));
+	}
+
 	private void doWork()
 	{
 		// Sets the hashmap
@@ -364,7 +398,7 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		numbers = new String("");
 		String longstring = new String("");
 		total = 0;
-		for(int i=0; i<string.length(); i++)
+		for (int i=0; i<string.length(); i++)
 		{
 			String s = string.charAt(i) + "";
 			Integer value = map.get(s);
@@ -379,144 +413,152 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 		string = longstring.substring(1);
 		numbers = numbers.substring(1);
 		calculation = calculation.substring(3);
-		answer = total%m.getCards().size();
-		
-		createBox();
+		answer = total%deck.getCards().size();
+
+		card = deck.getCards().get(answer);
 	}
 
 	private void eject()
 	{
-		for(SylladexCard card : m.getCards())
+		for (CaptchalogueCard card : deck.getCards())
 		{
-			if(!card.isEmpty())
-				open(card);
+			if (!card.isEmpty())
+			{
+				SylladexItem item = card.getItem();
+				open(card, OpenReason.MODUS_PUSH);
+				deck.eject(item);
+			}
 		}
 	}
 	
 	@Override
-	public void open(SylladexCard card)
+	public void open(CaptchalogueCard card, OpenReason reason)
 	{
-		icons.set(icons.indexOf(card.getIcon()), new JLabel(""));
-		m.setIcons(icons);
+		deck.setIcons(deck.getCards().toArray());
 		card.setAccessible(false);
-		m.open(card);
+		deck.open(card, reason);
 		arrangeCards();
 	}
 
-	// Don't support adding cards
-	public void addCard(){}
-	
-	@Override
-	public void showSelectionWindow()
+	public void addCard()
 	{
-		if(accessible==false){ return; }
-		accessible = false;
-		
-		string = JOptionPane.showInputDialog("");
-		if(string==null){ accessible=true; return; }
-		string = string.toUpperCase();
-		
-		doWork();
-		
-		SylladexCard card = m.getCards().get(answer);
-		Animation a3 = new Animation(card, new Point(card.getWidth(),card.getPosition().y), AnimationType.BOUNCE, this, "open animation");
-		Animation a2 = new Animation(AnimationType.WAIT, 2000, a3, "run");
-		new Animation(box, new Point(0,244), AnimationType.MOVE, a2, "run").run();
+		if (!deck.isEmpty())
+		{
+			int n = JOptionPane.showOptionDialog(preferences_panel,
+					"ADDING CARDS WILL EJECT SYLLADEX. ARE YOU SURE?", "",
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
+					new Object[] {"Y", "N"}, "N");
+			if(n==1)
+			{
+				return;
+			}
+			eject();
+		}
+		deck.addCard();
+		refreshDock();
+		arrangeCards();
 	}
-
+	
 	private void arrangeCards()
 	{
-		for(int i=0; i<m.getCards().size(); i++)
+		for (int i=0; i<deck.getCards().size(); i++)
 		{
-			SylladexCard card = m.getCards().get(i);
-			card.setPosition(new Point(0,41*i));
+			CaptchalogueCard card = deck.getCards().get(i);
+			card.setLocation(new Point(0,41*i));
 			card.setLayer(i);
+			card.setVisible(true);
 		}
-		m.setCardHolderSize(s.get_card_width()*2 + 5, m.getScreenSize().height);
+	}
+	
+	@Override
+	public void refreshDock()
+	{
+		foreground.removeAll();
+		int startx = Util.SCREEN_SIZE.width/2 - deck.getCards().size()*25 - 10;
+		
+		int max = deck.getCards().size();
+		if (max > Util.SCREEN_SIZE.width/50) { max = Util.SCREEN_SIZE.width/50; }
+		
+		for (int i=0; i<max; i++)
+		{
+			JLabel label = new JLabel("<HTML><FONT SIZE=1>" + i + "</FONT></HTML>");
+			label.setBounds(startx + i*50, deck.getDockIconYPosition() - 10, 50, 10);
+			label.setHorizontalAlignment(JLabel.CENTER);
+			foreground.add(label);
+		}
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getActionCommand().equals("box up"))
+		if (e.getActionCommand().equals("hashmap_box_up"))
 		{
 			window.removeAll();
 			window.setVisible(false);
-			accessible = true;
+			window.setAlwaysOnTop(false);
+			mode = DEFAULT;
 			
-			for(SylladexCard card : m.getCards())
+			for (CaptchalogueCard card : deck.getCards())
 			{
-				if(!card.isEmpty())
-				{ card.getForeground().removeAll(); }
+				if (!card.isEmpty())
+				{ card.getForegroundPanel().removeAll(); }
 			}
 		}
-		else if(e.getActionCommand().equals("add animation"))
+		else if (e.getActionCommand().equals("hashmap_first_animation"))
 		{
-			SylladexCard c = ((Animation)e.getSource()).getCard();
+			CaptchalogueCard c = (CaptchalogueCard) ((Animation)e.getSource()).getAnimationTarget();
 			
-			if(preferences.get(PrefLabels.DETECT_COLLISIONS.index).equals("false"))
+			if (mode == OPENING || preferences.get(PREF_DETECT_COLLISIONS).equals("false"))
 			{
-				if(!c.isEmpty()) { open(c); }
+				if(!c.isEmpty()) { open(c, OpenReason.MODUS_PUSH); }
 			}
-			if(c.isEmpty())
+			if (mode != OPENING)
 			{
-				c.setItem(item);
-				c.setAccessible(true);
-				JLabel icon = m.getIconLabelFromItem(item);
-				icons.set(answer, icon);
-				c.setIcon(icon);
-				m.setIcons(icons);
-			}
-			else
-			{
-				// Collision detected!
-				c.getForeground().add(collisionicon);
+				if (c.isEmpty())
+				{
+					c.setItem(item);
+					c.setAccessible(true);
+					deck.setIcons(deck.getCards().toArray());
+				}
+				else
+				{
+					// Collision detected!
+					c.getForegroundPanel().add(collisionicon);
+				}
 			}
 
-			Animation a3 = new Animation(box, new Point(0,0), AnimationType.MOVE, this, "box up");
-			Animation a2 = new Animation(c, new Point(0,c.getPosition().y), AnimationType.MOVE, a3, "run");
-			new Animation(AnimationType.WAIT, 1000, a2, "run").run();
+			deck.addAnimation(new Animation(AnimationType.WAIT, 1000, null, null));
+			deck.addAnimation(new Animation(c, new Point(0,c.getLocation().y), AnimationType.MOVE, null, null));
+			deck.addAnimation(new Animation(box, new Point(0,0), AnimationType.MOVE, this, "hashmap_box_up"));
 		}
-		else if(e.getActionCommand().equals("open animation"))
+		else if (e.getActionCommand().equals(Util.ACTION_CARD_MOUSE_ENTER))
 		{
-			
-			SylladexCard c = ((Animation)e.getSource()).getCard();
-			if(!c.isEmpty())
-				open(c);
-			
-			Animation a3 = new Animation(box, new Point(0,0), AnimationType.MOVE, this, "box up");
-			Animation a2 = new Animation(c, new Point(0,c.getPosition().y), AnimationType.MOVE, a3, "run");
-			new Animation(AnimationType.WAIT, 1000, a2, "run").run();
+			CaptchalogueCard card = (CaptchalogueCard)e.getSource();
+			Point finalposition = new Point(settings.get_card_width()-25, card.getLocation().y);
+			card.setLocation(finalposition);
 		}
-		else if(e.getActionCommand().equals("card mouse enter"))
+		else if (e.getActionCommand().equals(Util.ACTION_CARD_MOUSE_EXIT))
 		{
-			SylladexCard card = (SylladexCard)e.getSource();
-			Point finalposition = new Point(s.get_card_width()-25, card.getPosition().y);
-			new Animation(card, finalposition, AnimationType.MOVE, null, "").run();
+			CaptchalogueCard card = (CaptchalogueCard)e.getSource();
+			Point finalposition = new Point(0, card.getLocation().y);
+			card.setLocation(finalposition);
 		}
-		else if(e.getActionCommand().equals("card mouse exit"))
+		else if (e.getActionCommand().equals("hashmap_detect_collisions"))
 		{
-			SylladexCard card = (SylladexCard)e.getSource();
-			Point finalposition = new Point(0, card.getPosition().y);
-			Animation a = new Animation(card, finalposition, AnimationType.MOVE, null, "");
-			new Animation(AnimationType.WAIT, 100, a, "run").run();
-		}
-		else if(e.getActionCommand().equals("detect collisions"))
-		{
-			// So convoluted! We have to use the wrapper class to convert it to a String.
+			// So convoluted! We have to use the Boolean class to convert it to a String.
 			String value = new Boolean(((JCheckBox)e.getSource()).isSelected()).toString();
-			preferences.set(PrefLabels.DETECT_COLLISIONS.index, value);
+			preferences.set(PREF_DETECT_COLLISIONS, value);
 		}
-		else if(e.getActionCommand().equals("eject"))
+		else if (e.getActionCommand().equals("hashmap_eject"))
 		{
 			int n = JOptionPane.showOptionDialog(preferences_panel, "EJECT ALL ITEMS FROM SYLLADEX?", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[] {"Y", "N"}, "N");
-			if(n==0)
+			if (n==0)
 				eject();
 		}
-		else if(e.getActionCommand().equals("add mapping"))
+		else if (e.getActionCommand().equals("hashmap_add_mapping"))
 		{
 			String name = "new";
-			if(text.getText().length()>15)
+			if (text.getText().length()>15)
 			{
 				name = text.getText().substring(0, 15) + "...";
 			}
@@ -524,28 +566,32 @@ public class HashMapModus extends FetchModus implements ActionListener, ListSele
 			
 			try
 			{
-				FileWriter writer = new FileWriter(new File("modi/hashmap/" + name + ".txt"));
-				new File("modi/hashmap/" + name + ".txt").createNewFile();
+				FileWriter writer = new FileWriter(new File("modi/canon/hashmap/" + name + ".txt"));
+				new File("modi/canon/hashmap/" + name + ".txt").createNewFile();
 				BufferedWriter b = new BufferedWriter(writer);
-				
 				String s = text.getText().replaceAll("=", ":").replaceAll(";", System.getProperty("line.separator")).replaceAll(" ", "");
 				b.write(s);
 				b.close();
 				model.add(0, name);
 			}
-			catch (IOException e1){ e1.printStackTrace(); }
+			catch (IOException x){ x.printStackTrace(); }
+		}
+		else if (e.getActionCommand().equals(Util.ACTION_USER_DOCK_CLICK))
+		{
+			showSelectionWindow();
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void valueChanged(ListSelectionEvent e)
 	{
-		String value = (String)((JList)e.getSource()).getSelectedValue();
+		String value = (String)((JList<String>)e.getSource()).getSelectedValue();
 		int n = JOptionPane.showOptionDialog(preferences_panel, "CHANGING HASH FUNCTION WILL EJECT SYLLADEX. ARE YOU SURE?", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[] {"Y", "N"}, "N");
 		if(n==0)
 		{
 			eject();
-			preferences.set(PrefLabels.SELECTED_MAPPING.index, value + ".txt");
+			preferences.set(PREF_SELECTED_MAPPING, value + ".txt");
 		}
 	}
 }
